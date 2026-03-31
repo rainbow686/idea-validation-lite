@@ -35,6 +35,7 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [report, setReport] = useState<ReportData | null>(null)
   const [email, setEmail] = useState('')
+  const [isUnlocked, setIsUnlocked] = useState(false)
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -181,51 +182,151 @@ export default function Home() {
 
             {/* Locked Content */}
             <div className="border-t pt-8">
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-3xl font-bold text-gray-400">{report.preview.greenLightsCount}</div>
-                  <div className="text-sm text-gray-500">Green Lights</div>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-3xl font-bold text-gray-400">{report.preview.competitorsCount}</div>
-                  <div className="text-sm text-gray-500">Competitors Analyzed</div>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-3xl font-bold text-gray-400">{report.preview.redFlagsCount}</div>
-                  <div className="text-sm text-gray-500">Risk Flags</div>
-                </div>
+              {/* Test button - remove in production */}
+              <div className="mb-6 text-center">
+                <button
+                  onClick={() => setIsUnlocked(true)}
+                  className="text-sm text-gray-500 underline hover:text-gray-700"
+                >
+                  🧪 Test: View Full Report (Free)
+                </button>
               </div>
 
-              {/* Paywall */}
-              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-8 text-center">
-                <h4 className="text-xl font-bold text-gray-900 mb-2">Unlock Full Report</h4>
-                <p className="text-gray-600 mb-6">
-                  Get complete market analysis, competitor deep-dive, risk assessment, and actionable recommendations.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button
-                    onClick={() => handleUnlock('one_time')}
-                    className="bg-emerald-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-600 transition"
-                  >
-                    Unlock for $9.99
-                  </button>
-                  <button
-                    onClick={() => handleUnlock('monthly')}
-                    className="bg-white text-emerald-500 border-2 border-emerald-500 px-8 py-3 rounded-lg font-semibold hover:bg-emerald-50 transition"
-                  >
-                    Subscribe $29/mo (3 reports)
-                  </button>
+              {isUnlocked ? (
+                /* Full Report (Unlocked) */
+                <div className="space-y-6">
+                  {/* Green Lights */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Green Lights</h4>
+                    <ul className="space-y-2">
+                      {report.full.greenLights.map((light, i) => (
+                        <li key={i} className="flex items-start">
+                          <span className="text-emerald-500 mr-2">✓</span>
+                          <span className="text-gray-700">{light}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Market Size */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Market Size</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg text-center">
+                        <div className="text-sm text-gray-500">TAM</div>
+                        <div className="text-lg font-bold text-gray-900">{report.full.marketSize.TAM}</div>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg text-center">
+                        <div className="text-sm text-gray-500">SAM</div>
+                        <div className="text-lg font-bold text-gray-900">{report.full.marketSize.SAM}</div>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg text-center">
+                        <div className="text-sm text-gray-500">SOM</div>
+                        <div className="text-lg font-bold text-gray-900">{report.full.marketSize.SOM}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Competitors */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Competitors</h4>
+                    <div className="space-y-4">
+                      {report.full.competitors.map((competitor, i) => (
+                        <div key={i} className="bg-gray-50 p-4 rounded-lg">
+                          <div className="font-semibold text-gray-900 mb-1">{competitor.name}</div>
+                          <div className="text-sm text-gray-600 mb-2">{competitor.description}</div>
+                          <div className="text-sm text-emerald-600">
+                            <strong>Differentiation:</strong> {competitor.differentiation}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Red Flags */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Red Flags</h4>
+                    <ul className="space-y-2">
+                      {report.full.redFlags.map((flag, i) => (
+                        <li key={i} className="flex items-start">
+                          <span className="text-red-500 mr-2">⚠</span>
+                          <span className="text-gray-700">{flag}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Recommendations */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Recommendations</h4>
+                    <ol className="space-y-2">
+                      {report.full.recommendations.map((rec, i) => (
+                        <li key={i} className="flex items-start">
+                          <span className="bg-emerald-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 flex-shrink-0">
+                            {i + 1}
+                          </span>
+                          <span className="text-gray-700">{rec}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  {/* Download PDF Button */}
+                  <div className="mt-8 text-center">
+                    <button className="bg-emerald-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-600 transition">
+                      📄 Download PDF Report
+                    </button>
+                  </div>
                 </div>
-                <div className="mt-4">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email for receipt"
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                </div>
-              </div>
+              ) : (
+                /* Paywall (Locked) */
+                <>
+                  <div className="grid md:grid-cols-3 gap-6 mb-8">
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-3xl font-bold text-gray-400">{report.preview.greenLightsCount}</div>
+                      <div className="text-sm text-gray-500">Green Lights</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-3xl font-bold text-gray-400">{report.preview.competitorsCount}</div>
+                      <div className="text-sm text-gray-500">Competitors Analyzed</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-3xl font-bold text-gray-400">{report.preview.redFlagsCount}</div>
+                      <div className="text-sm text-gray-500">Risk Flags</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-8 text-center">
+                    <h4 className="text-xl font-bold text-gray-900 mb-2">Unlock Full Report</h4>
+                    <p className="text-gray-600 mb-6">
+                      Get complete market analysis, competitor deep-dive, risk assessment, and actionable recommendations.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <button
+                        onClick={() => handleUnlock('one_time')}
+                        className="bg-emerald-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-600 transition"
+                      >
+                        Unlock for $9.99
+                      </button>
+                      <button
+                        onClick={() => handleUnlock('monthly')}
+                        className="bg-white text-emerald-500 border-2 border-emerald-500 px-8 py-3 rounded-lg font-semibold hover:bg-emerald-50 transition"
+                      >
+                        Subscribe $29/mo (3 reports)
+                      </button>
+                    </div>
+                    <div className="mt-4">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email for receipt"
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* New Validation Button */}
