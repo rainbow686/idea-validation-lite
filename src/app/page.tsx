@@ -172,7 +172,7 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-b from-emerald-50 via-white to-white pt-24 pb-16">
+      <section className="relative bg-gradient-to-b from-emerald-50 via-white to-white pt-20 pb-12">
         {/* Decorative glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-400/20 rounded-full filter blur-3xl pointer-events-none" />
 
@@ -187,7 +187,7 @@ export default function Home() {
           </div>
 
           {/* Headline */}
-          <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight leading-tight">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight">
             Don&apos;t Build Blind.
             <br />
             <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">
@@ -196,86 +196,86 @@ export default function Home() {
           </h2>
 
           {/* Subheadline */}
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
             Get investor-ready validation reports in minutes. Market size, competitors, risks, and go/no-go recommendations — all powered by AI.
           </p>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 max-w-2xl mx-auto mb-10">
-            <div className="bg-white rounded-xl p-4 shadow-md border border-emerald-50">
-              <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">120s</div>
-              <div className="text-sm text-gray-500 mt-1">Analysis Time</div>
+          <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+            <div className="bg-white rounded-xl p-3 shadow-md border border-emerald-50">
+              <div className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">120s</div>
+              <div className="text-xs md:text-sm text-gray-500 mt-1">Analysis Time</div>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-md border border-emerald-50">
-              <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">89%</div>
-              <div className="text-sm text-gray-500 mt-1">Accuracy Rate</div>
+            <div className="bg-white rounded-xl p-3 shadow-md border border-emerald-50">
+              <div className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">89%</div>
+              <div className="text-xs md:text-sm text-gray-500 mt-1">Accuracy Rate</div>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-md border border-emerald-50">
-              <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">500+</div>
-              <div className="text-sm text-gray-500 mt-1">Ideas Validated</div>
+            <div className="bg-white rounded-xl p-3 shadow-md border border-emerald-50">
+              <div className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">500+</div>
+              <div className="text-xs md:text-sm text-gray-500 mt-1">Ideas Validated</div>
             </div>
           </div>
+
+          {/* Input Form (Integrated in Hero) */}
+          {!report && (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white rounded-2xl shadow-xl p-2 border border-gray-100">
+                <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={ideaTitle}
+                    onChange={(e) => setIdeaTitle(e.target.value)}
+                    placeholder="Enter your startup idea..."
+                    className="flex-1 px-6 py-4 rounded-xl border-0 focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={isGenerating || !ideaTitle}
+                    className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transition shadow-lg shadow-emerald-500/25 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGenerating ? 'Analyzing...' : 'Analyze Free'}
+                  </button>
+                </form>
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500 mt-4">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Free preview available</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Instant results</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>PDF download</span>
+                </div>
+              </div>
+
+              {/* Feature Pills */}
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {['TAM/SAM/SOM', 'Competitor Research', 'SWOT Analysis', 'GO/NO-GO', 'Risk Assessment', 'Revenue Models'].map((feature) => (
+                  <span
+                    key={feature}
+                    className="px-3 py-1.5 bg-white rounded-full text-xs text-gray-600 border border-gray-200 shadow-sm"
+                  >
+                    ✓ {feature}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
-
-      {/* Input Form (Integrated in Hero) */}
-      {!report && (
-        <section className="max-w-2xl mx-auto px-4 pb-20 -mt-8">
-          <div className="bg-white rounded-2xl shadow-xl p-2 border border-gray-100">
-            <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                value={ideaTitle}
-                onChange={(e) => setIdeaTitle(e.target.value)}
-                placeholder="Enter your startup idea..."
-                className="flex-1 px-6 py-4 rounded-xl border-0 focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400"
-                required
-              />
-              <button
-                type="submit"
-                disabled={isGenerating || !ideaTitle}
-                className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transition shadow-lg shadow-emerald-500/25 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? 'Analyzing...' : 'Analyze Free'}
-              </button>
-            </form>
-          </div>
-
-          {/* Trust Indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500 mt-6">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>Free preview available</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>Instant results</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>PDF download</span>
-            </div>
-          </div>
-
-          {/* Feature Pills */}
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            {['TAM/SAM/SOM Analysis', 'Competitor Research', 'SWOT Analysis', 'GO/NO-GO Recommendation', 'Risk Assessment', 'Revenue Models'].map((feature) => (
-              <span
-                key={feature}
-                className="px-4 py-2 bg-white rounded-full text-sm text-gray-600 border border-gray-200 shadow-sm"
-              >
-                ✓ {feature}
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Report Preview */}
       {report && (
