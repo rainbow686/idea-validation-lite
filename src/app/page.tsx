@@ -24,8 +24,24 @@ interface ReportData {
       name: string
       description: string
       differentiation: string
+      strengths?: string[]
+      weaknesses?: string[]
     }>
     recommendations: string[]
+    // Market trends
+    marketTrends?: Array<{
+      trend: string
+      impact: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL'
+      description: string
+    }>
+    // Customer validation
+    customerValidation?: {
+      problemSeverity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
+      problemEvidence: string[]
+      willingnessToPay: 'HIGH' | 'MEDIUM' | 'LOW'
+      suggestedPricePoint: string
+      earlyAdopterProfile: string
+    }
     // P0 fields
     swotAnalysis: {
       strengths: string[]
@@ -38,6 +54,7 @@ interface ReportData {
       demographics: string
       psychographics: string
       painPoints: string[]
+      behaviorPatterns?: string[]
     }
     goNoGoRecommendation: {
       recommendation: 'GO' | 'NO-GO' | 'CONDITIONAL'
@@ -58,7 +75,34 @@ interface ReportData {
       pros: string[]
       cons: string[]
       estimatedMRR: string
+      implementationSteps?: string[]
     }>
+    // NEW: Financial projections
+    financialProjections?: {
+      year1Revenue: string
+      year2Revenue: string
+      year3Revenue: string
+      keyAssumptions: string[]
+      breakEvenTimeline: string
+      capitalRequired: string
+    }
+    // NEW: MVP Roadmap
+    mvpRoadmap?: {
+      phase1: { name: string; timeline: string; features: string[]; goal: string }
+      phase2: { name: string; timeline: string; features: string[]; goal: string }
+      phase3: { name: string; timeline: string; features: string[]; goal: string }
+    }
+    // NEW: Go-to-Market Strategy
+    goToMarketStrategy?: {
+      positioning: string
+      channels: Array<{
+        channel: string
+        rationale: string
+        expectedCAC: string
+        priority: 'HIGH' | 'MEDIUM' | 'LOW'
+      }>
+      launchStrategy: string
+    }
   }
 }
 
@@ -559,6 +603,208 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Market Trends */}
+                  {report.full.marketTrends && report.full.marketTrends.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Market Trends</h4>
+                      <div className="space-y-3">
+                        {report.full.marketTrends.map((trend, i) => (
+                          <div key={i} className={`border rounded-xl p-5 ${
+                            trend.impact === 'POSITIVE' ? 'bg-emerald-50 border-emerald-100' :
+                            trend.impact === 'NEGATIVE' ? 'bg-red-50 border-red-100' :
+                            'bg-gray-50 border-gray-200'
+                          }`}>
+                            <div className="flex justify-between items-start mb-2">
+                              <h5 className="text-base font-bold text-gray-900">{trend.trend}</h5>
+                              <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                trend.impact === 'POSITIVE' ? 'bg-emerald-100 text-emerald-700' :
+                                trend.impact === 'NEGATIVE' ? 'bg-red-100 text-red-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {trend.impact}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700">{trend.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Customer Validation */}
+                  {report.full.customerValidation && (
+                    <div className="border-2 border-emerald-200 rounded-xl p-6 bg-gradient-to-r from-emerald-50 to-white">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Customer Validation</h4>
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <p className="text-xs font-semibold text-gray-600 mb-1">Problem Severity</p>
+                          <p className={`text-lg font-bold ${
+                            report.full.customerValidation.problemSeverity === 'CRITICAL' ? 'text-red-600' :
+                            report.full.customerValidation.problemSeverity === 'HIGH' ? 'text-amber-600' :
+                            'text-emerald-600'
+                          }`}>
+                            {report.full.customerValidation.problemSeverity}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-600 mb-1">Willingness to Pay</p>
+                          <p className={`text-lg font-bold ${
+                            report.full.customerValidation.willingnessToPay === 'HIGH' ? 'text-emerald-600' :
+                            report.full.customerValidation.willingnessToPay === 'MEDIUM' ? 'text-amber-600' :
+                            'text-red-600'
+                          }`}>
+                            {report.full.customerValidation.willingnessToPay}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mb-4">
+                        <p className="text-sm font-semibold text-gray-700 mb-2">Problem Evidence from Real Users</p>
+                        <div className="space-y-2">
+                          {report.full.customerValidation.problemEvidence.map((evidence, i) => (
+                            <blockquote key={i} className="text-sm text-gray-600 italic border-l-4 border-emerald-400 pl-3">
+                              &quot;{evidence}&quot;
+                            </blockquote>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Suggested Price Point</p>
+                          <p className="text-gray-700">{report.full.customerValidation.suggestedPricePoint}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Early Adopter Profile</p>
+                          <p className="text-gray-700">{report.full.customerValidation.earlyAdopterProfile}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Financial Projections */}
+                  {report.full.financialProjections && (
+                    <div className="border-2 border-blue-200 rounded-xl p-6 bg-gradient-to-r from-blue-50 to-white">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Financial Projections</h4>
+                      <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                          <p className="text-xs text-gray-500 mb-1">Year 1</p>
+                          <p className="text-xl font-bold text-gray-900">{report.full.financialProjections.year1Revenue}</p>
+                        </div>
+                        <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                          <p className="text-xs text-gray-500 mb-1">Year 2</p>
+                          <p className="text-xl font-bold text-gray-900">{report.full.financialProjections.year2Revenue}</p>
+                        </div>
+                        <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                          <p className="text-xs text-gray-500 mb-1">Year 3</p>
+                          <p className="text-xl font-bold text-gray-900">{report.full.financialProjections.year3Revenue}</p>
+                        </div>
+                      </div>
+                      <div className="mb-4">
+                        <p className="text-sm font-semibold text-gray-700 mb-2">Key Assumptions</p>
+                        <ul className="space-y-1">
+                          {report.full.financialProjections.keyAssumptions.map((assumption, i) => (
+                            <li key={i} className="text-sm text-gray-700 flex items-start">
+                              <span className="text-blue-500 mr-2">•</span>
+                              {assumption}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg p-4">
+                          <p className="text-xs text-gray-500 mb-1">Break-even Timeline</p>
+                          <p className="text-lg font-bold text-emerald-600">{report.full.financialProjections.breakEvenTimeline}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4">
+                          <p className="text-xs text-gray-500 mb-1">Capital Required</p>
+                          <p className="text-lg font-bold text-emerald-600">{report.full.financialProjections.capitalRequired}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MVP Roadmap */}
+                  {report.full.mvpRoadmap && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">MVP Roadmap</h4>
+                      <div className="space-y-4">
+                        <div className="border-2 border-emerald-400 rounded-xl p-5 bg-emerald-50">
+                          <h5 className="text-base font-bold text-emerald-800 mb-2">Phase 1: {report.full.mvpRoadmap.phase1.name} ({report.full.mvpRoadmap.phase1.timeline})</h5>
+                          <p className="text-sm text-emerald-700 mb-3">{report.full.mvpRoadmap.phase1.goal}</p>
+                          <ul className="space-y-1">
+                            {report.full.mvpRoadmap.phase1.features.map((feature, i) => (
+                              <li key={i} className="text-sm text-gray-700 flex items-start">
+                                <span className="text-emerald-500 mr-2">✓</span>
+                                {feature}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="border-2 border-amber-400 rounded-xl p-5 bg-amber-50">
+                          <h5 className="text-base font-bold text-amber-800 mb-2">Phase 2: {report.full.mvpRoadmap.phase2.name} ({report.full.mvpRoadmap.phase2.timeline})</h5>
+                          <p className="text-sm text-amber-700 mb-3">{report.full.mvpRoadmap.phase2.goal}</p>
+                          <ul className="space-y-1">
+                            {report.full.mvpRoadmap.phase2.features.map((feature, i) => (
+                              <li key={i} className="text-sm text-gray-700 flex items-start">
+                                <span className="text-amber-500 mr-2">→</span>
+                                {feature}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="border-2 border-blue-400 rounded-xl p-5 bg-blue-50">
+                          <h5 className="text-base font-bold text-blue-800 mb-2">Phase 3: {report.full.mvpRoadmap.phase3.name} ({report.full.mvpRoadmap.phase3.timeline})</h5>
+                          <p className="text-sm text-blue-700 mb-3">{report.full.mvpRoadmap.phase3.goal}</p>
+                          <ul className="space-y-1">
+                            {report.full.mvpRoadmap.phase3.features.map((feature, i) => (
+                              <li key={i} className="text-sm text-gray-700 flex items-start">
+                                <span className="text-blue-500 mr-2">★</span>
+                                {feature}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Go-to-Market Strategy */}
+                  {report.full.goToMarketStrategy && (
+                    <div className="border-2 border-purple-200 rounded-xl p-6 bg-gradient-to-r from-purple-50 to-white">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Go-to-Market Strategy</h4>
+                      <div className="mb-6">
+                        <p className="text-sm font-semibold text-gray-700 mb-2">Positioning Statement</p>
+                        <p className="text-gray-700 italic bg-white rounded-lg p-4 border border-gray-200">
+                          {report.full.goToMarketStrategy.positioning}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-3">Marketing Channels</p>
+                        <div className="space-y-3">
+                          {report.full.goToMarketStrategy.channels.map((channel, i) => (
+                            <div key={i} className={`border rounded-lg p-4 ${
+                              channel.priority === 'HIGH' ? 'bg-emerald-50 border-emerald-200' :
+                              channel.priority === 'MEDIUM' ? 'bg-amber-50 border-amber-200' :
+                              'bg-gray-50 border-gray-200'
+                            }`}>
+                              <div className="flex justify-between items-center mb-2">
+                                <h5 className="text-base font-bold text-gray-900">{channel.channel}</h5>
+                                <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                  channel.priority === 'HIGH' ? 'bg-emerald-100 text-emerald-700' :
+                                  channel.priority === 'MEDIUM' ? 'bg-amber-100 text-amber-700' :
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {channel.priority} PRIORITY
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600 mb-1">Expected CAC: {channel.expectedCAC}</p>
+                              <p className="text-sm text-gray-700">{channel.rationale}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Download PDF Button */}
                   <div className="mt-8 text-center">
