@@ -36,6 +36,7 @@ export default function Home() {
   const [report, setReport] = useState<ReportData | null>(null)
   const [email, setEmail] = useState('')
   const [isUnlocked, setIsUnlocked] = useState(false)
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,6 +80,42 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error creating checkout:', error)
+    }
+  }
+
+  const handleDownloadPdf = async () => {
+    if (!report || !ideaTitle) return
+
+    setIsDownloadingPdf(true)
+    try {
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ideaTitle, ideaDescription }),
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.pdf) {
+        // Convert base64 to blob and download
+        const binaryString = atob(data.pdf)
+        const bytes = new Uint8Array(binaryString.length)
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i)
+        }
+        const blob = new Blob([bytes], { type: 'application/pdf' })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `validation-report-${ideaTitle.replace(/\s+/g, '-').toLowerCase()}.pdf`
+        link.click()
+        window.URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      alert('Failed to download PDF')
+    } finally {
+      setIsDownloadingPdf(false)
     }
   }
 
@@ -273,8 +310,12 @@ export default function Home() {
 
                   {/* Download PDF Button */}
                   <div className="mt-8 text-center">
-                    <button className="bg-emerald-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-600 transition">
-                      📄 Download PDF Report
+                    <button
+                      onClick={handleDownloadPdf}
+                      disabled={isDownloadingPdf}
+                      className="bg-emerald-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isDownloadingPdf ? 'Generating PDF...' : '📄 Download PDF Report'}
                     </button>
                   </div>
                 </div>
