@@ -2,13 +2,13 @@
  * Generate idea validation report using Google Search API + Claude
  */
 
-interface SearchResult {
+export interface SearchResult {
   title: string
   snippet: string
   link: string
 }
 
-interface ValidationReport {
+export interface ValidationReport {
   overallScore: number
   executiveSummary: string
   greenLights: string[]
