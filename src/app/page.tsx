@@ -48,12 +48,16 @@ export default function Home() {
       })
 
       const data = await response.json()
+      console.log('Report response:', data)
 
-      if (data.success) {
+      if (data.success && data.data) {
         setReport(data.data)
+      } else if (data.error) {
+        alert('Error: ' + data.error)
       }
     } catch (error) {
       console.error('Error generating report:', error)
+      alert('Failed to generate report')
     } finally {
       setIsGenerating(false)
     }
