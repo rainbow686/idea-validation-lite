@@ -2,11 +2,38 @@
 
 import { useState } from 'react'
 
+interface ReportData {
+  preview: {
+    overallScore: number
+    executiveSummary: string
+    greenLightsCount: number
+    competitorsCount: number
+    redFlagsCount: number
+  }
+  full: {
+    overallScore: number
+    executiveSummary: string
+    greenLights: string[]
+    redFlags: string[]
+    marketSize: {
+      TAM: string
+      SAM: string
+      SOM: string
+    }
+    competitors: Array<{
+      name: string
+      description: string
+      differentiation: string
+    }>
+    recommendations: string[]
+  }
+}
+
 export default function Home() {
   const [ideaTitle, setIdeaTitle] = useState('')
   const [ideaDescription, setIdeaDescription] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [report, setReport] = useState<any>(null)
+  const [report, setReport] = useState<ReportData | null>(null)
   const [email, setEmail] = useState('')
 
   const handleGenerate = async (e: React.FormEvent) => {

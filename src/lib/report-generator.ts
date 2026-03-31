@@ -42,7 +42,7 @@ export async function googleSearch(query: string): Promise<SearchResult[]> {
     const response = await fetch(url)
     const data = await response.json()
 
-    return (data.items || []).map((item: any) => ({
+    return (data.items || []).map((item: { title: string; snippet: string; link: string }) => ({
       title: item.title,
       snippet: item.snippet,
       link: item.link,
