@@ -24,6 +24,39 @@ export interface ValidationReport {
     differentiation: string
   }>
   recommendations: string[]
+  // P0 - Core validation enhancements
+  swotAnalysis: {
+    strengths: string[]
+    weaknesses: string[]
+    opportunities: string[]
+    threats: string[]
+  }
+  targetAudience: {
+    primaryICP: string
+    demographics: string
+    psychographics: string
+    painPoints: string[]
+  }
+  goNoGoRecommendation: {
+    recommendation: 'GO' | 'NO-GO' | 'CONDITIONAL'
+    confidence: number
+    rationale: string
+    keyConditions?: string[]
+  }
+  riskMatrix: Array<{
+    risk: string
+    level: 'HIGH' | 'MEDIUM' | 'LOW'
+    impact: 'HIGH' | 'MEDIUM' | 'LOW'
+    likelihood: 'HIGH' | 'MEDIUM' | 'LOW'
+    mitigation: string
+  }>
+  revenueModelSuggestions: Array<{
+    model: string
+    description: string
+    pros: string[]
+    cons: string[]
+    estimatedMRR: string
+  }>
 }
 
 export async function googleSearch(query: string): Promise<SearchResult[]> {
@@ -114,7 +147,39 @@ Generate a JSON report with this exact structure:
     "SOM": string
   },
   "competitors": [{"name": string, "description": string, "differentiation": string}],
-  "recommendations": string[] (3-5 actionable next steps)
+  "recommendations": string[] (3-5 actionable next steps),
+  "swotAnalysis": {
+    "strengths": string[],
+    "weaknesses": string[],
+    "opportunities": string[],
+    "threats": string[]
+  },
+  "targetAudience": {
+    "primaryICP": string,
+    "demographics": string,
+    "psychographics": string,
+    "painPoints": string[]
+  },
+  "goNoGoRecommendation": {
+    "recommendation": "GO" | "NO-GO" | "CONDITIONAL",
+    "confidence": number (0-100),
+    "rationale": string,
+    "keyConditions": string[]
+  },
+  "riskMatrix": [{
+    "risk": string,
+    "level": "HIGH" | "MEDIUM" | "LOW",
+    "impact": "HIGH" | "MEDIUM" | "LOW",
+    "likelihood": "HIGH" | "MEDIUM" | "LOW",
+    "mitigation": string
+  }],
+  "revenueModelSuggestions": [{
+    "model": string,
+    "description": string,
+    "pros": string[],
+    "cons": string[],
+    "estimatedMRR": string
+  }]
 }
 
 Be honest and critical. Return ONLY valid JSON, no markdown.
@@ -174,13 +239,13 @@ function mockReport(ideaTitle: string, ideaDescription: string): ValidationRepor
     competitors: [
       {
         name: 'IdeaProof',
-        description: 'AI-powered idea validation platform',
-        differentiation: 'We focus on affordability and speed',
+        description: 'AI-powered idea validation platform (€19-99/month)',
+        differentiation: 'We focus on affordability ($9.99 one-time) and speed for solo founders',
       },
       {
         name: 'Competitor B',
-        description: 'Market research tool',
-        differentiation: 'We are more specialized for solo founders',
+        description: 'Market research tool for enterprises',
+        differentiation: 'We are more specialized for solo founders and indie hackers',
       },
     ],
     recommendations: [
@@ -188,6 +253,79 @@ function mockReport(ideaTitle: string, ideaDescription: string): ValidationRepor
       'Build a waitlist before launching',
       'Create content marketing around idea validation',
       'Partner with startup accelerators for distribution',
+    ],
+    // P0 - Core validation enhancements
+    swotAnalysis: {
+      strengths: ['First-mover advantage in affordable validation', 'Lean operation with AI-first approach'],
+      weaknesses: ['Limited brand recognition', 'Small marketing budget'],
+      opportunities: ['Growing solo founder economy', 'Underserved market segment'],
+      threats: ['Established competitors lowering prices', 'AI commoditization'],
+    },
+    targetAudience: {
+      primaryICP: 'Solo founders and indie hackers validating their first SaaS idea',
+      demographics: '25-45, technical background, $50k-150k income, urban areas',
+      psychographics: 'Risk-tolerant, value speed over perfection, DIY mindset, active in online communities',
+      painPoints: [
+        'Cannot afford expensive validation services (€100+)',
+        'Need quick answers before committing months of development',
+        'Overwhelmed by complex market research tools',
+      ],
+    },
+    goNoGoRecommendation: {
+      recommendation: 'GO',
+      confidence: 72,
+      rationale: 'Market signals are positive, target segment is underserved, and the lean approach reduces downside risk. Proceed with a focused MVP.',
+      keyConditions: [
+        'Validate willingness to pay with 10+ customer interviews',
+        'Build landing page and collect 100+ email signups',
+        'Close 5-10 paying beta customers within 30 days',
+      ],
+    },
+    riskMatrix: [
+      {
+        risk: 'Market saturation',
+        level: 'MEDIUM',
+        impact: 'HIGH',
+        likelihood: 'MEDIUM',
+        mitigation: 'Focus on underserved solo founder segment with pricing differentiation',
+      },
+      {
+        risk: 'Low conversion rate',
+        level: 'HIGH',
+        impact: 'HIGH',
+        likelihood: 'MEDIUM',
+        mitigation: 'Implement freemium model with strong free tier to build trust',
+      },
+      {
+        risk: 'API cost overrun',
+        level: 'LOW',
+        impact: 'MEDIUM',
+        likelihood: 'LOW',
+        mitigation: 'Implement usage caps and caching to control AI API costs',
+      },
+    ],
+    revenueModelSuggestions: [
+      {
+        model: 'One-time payment',
+        description: '$9.99 per validation report',
+        pros: ['Low friction', 'Clear value proposition', 'No churn concerns'],
+        cons: ['No recurring revenue', 'Need constant new customer acquisition'],
+        estimatedMRR: '$2,000-5,000 (200-500 customers/month)',
+      },
+      {
+        model: 'Subscription',
+        description: '$29/month for 3 reports',
+        pros: ['Recurring revenue', 'Higher LTV', 'Predictable income'],
+        cons: ['Higher churn risk', 'Need continuous value delivery'],
+        estimatedMRR: '$3,000-8,000 (100-300 subscribers)',
+      },
+      {
+        model: 'Freemium + Upsell',
+        description: 'Free basic report, $9.99 for premium',
+        pros: ['Large top of funnel', 'Product-led growth', 'Viral potential'],
+        cons: ['Low conversion rate (2-5%)', 'High infrastructure costs'],
+        estimatedMRR: '$1,500-4,000 (depends on conversion)',
+      },
     ],
   }
 }

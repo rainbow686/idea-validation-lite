@@ -26,6 +26,39 @@ interface ReportData {
       differentiation: string
     }>
     recommendations: string[]
+    // P0 fields
+    swotAnalysis: {
+      strengths: string[]
+      weaknesses: string[]
+      opportunities: string[]
+      threats: string[]
+    }
+    targetAudience: {
+      primaryICP: string
+      demographics: string
+      psychographics: string
+      painPoints: string[]
+    }
+    goNoGoRecommendation: {
+      recommendation: 'GO' | 'NO-GO' | 'CONDITIONAL'
+      confidence: number
+      rationale: string
+      keyConditions?: string[]
+    }
+    riskMatrix: Array<{
+      risk: string
+      level: 'HIGH' | 'MEDIUM' | 'LOW'
+      impact: 'HIGH' | 'MEDIUM' | 'LOW'
+      likelihood: 'HIGH' | 'MEDIUM' | 'LOW'
+      mitigation: string
+    }>
+    revenueModelSuggestions: Array<{
+      model: string
+      description: string
+      pros: string[]
+      cons: string[]
+      estimatedMRR: string
+    }>
   }
 }
 
@@ -306,6 +339,177 @@ export default function Home() {
                         </li>
                       ))}
                     </ol>
+                  </div>
+
+                  {/* GO/NO-GO Recommendation */}
+                  <div className="border-2 border-emerald-200 rounded-xl p-6 bg-gradient-to-r from-emerald-50 to-white">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Final Recommendation</h4>
+                    <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold mb-3 ${
+                      report.full.goNoGoRecommendation.recommendation === 'GO' ? 'bg-emerald-100 text-emerald-700' :
+                      report.full.goNoGoRecommendation.recommendation === 'NO-GO' ? 'bg-red-100 text-red-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {report.full.goNoGoRecommendation.recommendation === 'GO' && '✓ '}
+                      {report.full.goNoGoRecommendation.recommendation === 'NO-GO' && '✕ '}
+                      {report.full.goNoGoRecommendation.recommendation === 'CONDITIONAL' && '⚠ '}
+                      {report.full.goNoGoRecommendation.recommendation}
+                      <span className="ml-3 text-xs font-normal">
+                        Confidence: {report.full.goNoGoRecommendation.confidence}%
+                      </span>
+                    </div>
+                    <p className="text-gray-700 mb-3">{report.full.goNoGoRecommendation.rationale}</p>
+                    {report.full.goNoGoRecommendation.keyConditions && report.full.goNoGoRecommendation.keyConditions.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-2">Key Conditions:</p>
+                        <ul className="space-y-1">
+                          {report.full.goNoGoRecommendation.keyConditions.map((condition, i) => (
+                            <li key={i} className="text-sm text-gray-600 flex items-start">
+                              <span className="text-emerald-500 mr-2">→</span>
+                              {condition}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SWOT Analysis */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">SWOT Analysis</h4>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="bg-emerald-50 rounded-lg p-4">
+                        <h5 className="text-sm font-semibold text-emerald-700 mb-2">Strengths</h5>
+                        <ul className="space-y-1">
+                          {report.full.swotAnalysis.strengths.map((item, i) => (
+                            <li key={i} className="text-sm text-gray-700">• {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="bg-red-50 rounded-lg p-4">
+                        <h5 className="text-sm font-semibold text-red-700 mb-2">Weaknesses</h5>
+                        <ul className="space-y-1">
+                          {report.full.swotAnalysis.weaknesses.map((item, i) => (
+                            <li key={i} className="text-sm text-gray-700">• {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <h5 className="text-sm font-semibold text-blue-700 mb-2">Opportunities</h5>
+                        <ul className="space-y-1">
+                          {report.full.swotAnalysis.opportunities.map((item, i) => (
+                            <li key={i} className="text-sm text-gray-700">• {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="bg-orange-50 rounded-lg p-4">
+                        <h5 className="text-sm font-semibold text-orange-700 mb-2">Threats</h5>
+                        <ul className="space-y-1">
+                          {report.full.swotAnalysis.threats.map((item, i) => (
+                            <li key={i} className="text-sm text-gray-700">• {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Target Audience */}
+                  <div className="border rounded-xl p-6 bg-gray-50">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Target Audience</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-1">Primary ICP</p>
+                        <p className="text-gray-700">{report.full.targetAudience.primaryICP}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-1">Demographics</p>
+                        <p className="text-gray-700">{report.full.targetAudience.demographics}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-1">Psychographics</p>
+                        <p className="text-gray-700">{report.full.targetAudience.psychographics}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-2">Pain Points</p>
+                        <ul className="space-y-1">
+                          {report.full.targetAudience.painPoints.map((pain, i) => (
+                            <li key={i} className="text-sm text-gray-700 flex items-start">
+                              <span className="text-red-500 mr-2">!</span>
+                              {pain}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Risk Matrix */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Risk Matrix</h4>
+                    <div className="space-y-3">
+                      {report.full.riskMatrix.map((riskItem, i) => (
+                        <div key={i} className="border rounded-lg p-4 hover:shadow-md transition">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-semibold text-gray-900">{riskItem.risk}</span>
+                            <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                              riskItem.level === 'HIGH' ? 'bg-red-100 text-red-700' :
+                              riskItem.level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-emerald-100 text-emerald-700'
+                            }`}>
+                              {riskItem.level} RISK
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 mb-2">
+                            Impact: <span className={riskItem.impact === 'HIGH' ? 'font-semibold text-red-600' : 'text-gray-700'}>{riskItem.impact}</span>
+                            {' · '}
+                            Likelihood: <span className={riskItem.likelihood === 'HIGH' ? 'font-semibold text-red-600' : 'text-gray-700'}>{riskItem.likelihood}</span>
+                          </div>
+                          <div className="text-sm text-gray-700">
+                            <span className="font-semibold">Mitigation: </span>
+                            {riskItem.mitigation}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Revenue Model Suggestions */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Revenue Model Suggestions</h4>
+                    <div className="space-y-4">
+                      {report.full.revenueModelSuggestions.map((model, i) => (
+                        <div key={i} className="border rounded-xl p-5 bg-white shadow-sm">
+                          <div className="flex justify-between items-start mb-2">
+                            <h5 className="text-base font-bold text-gray-900">{model.model}</h5>
+                            <span className="text-sm font-semibold text-emerald-600">{model.estimatedMRR}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-3">{model.description}</p>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-xs font-semibold text-emerald-700 mb-1">Pros</p>
+                              <ul className="space-y-1">
+                                {model.pros.map((pro, j) => (
+                                  <li key={j} className="text-sm text-gray-700 flex items-start">
+                                    <span className="text-emerald-500 mr-2">✓</span>
+                                    {pro}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-red-700 mb-1">Cons</p>
+                              <ul className="space-y-1">
+                                {model.cons.map((con, j) => (
+                                  <li key={j} className="text-sm text-gray-700 flex items-start">
+                                    <span className="text-red-500 mr-2">✕</span>
+                                    {con}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Download PDF Button */}
