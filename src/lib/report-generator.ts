@@ -1,5 +1,6 @@
 /**
  * Generate idea validation report using Google Search API + Claude
+ * Analysis framework inspired by Y Combinator office hours and gstack skills
  */
 
 export interface SearchResult {
@@ -13,11 +14,39 @@ export interface ValidationReport {
   executiveSummary: string
   greenLights: string[]
   redFlags: string[]
+  // NEW: Problem validation (gstack-style)
+  problemValidation?: {
+    problemExists: boolean
+    problemSeverity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
+    problemEvidence: string[]
+    currentWorkaround: string
+    workaroundCost: string
+    willingnessToPay: 'HIGH' | 'MEDIUM' | 'LOW'
+    evidenceType: 'PAYING' | 'WAITING' | 'INTERESTED' | 'HYPOTHETICAL'
+  }
+  // NEW: Customer specificity
+  customerSpecificity?: {
+    primaryICP: string
+    specificCompanyTypes: string[]
+    geographicFocus: string
+    budgetAuthority: string
+    buyingProcess: string
+    earlyAdopterCount: number
+  }
+  // Market size
   marketSize: {
     TAM: string
     SAM: string
     SOM: string
   }
+  // NEW: Market reality
+  marketReality?: {
+    marketSize: { TAM: string; SAM: string; SOM: string }
+    marketTrend: 'GROWING' | 'STABLE' | 'DECLINING'
+    marketEvidence: string[]
+    timingRisk: 'TOO_EARLY' | 'RIGHT_TIME' | 'TOO_LATE'
+  }
+  // Competitors
   competitors: Array<{
     name: string
     description: string
@@ -25,14 +54,24 @@ export interface ValidationReport {
     strengths?: string[]
     weaknesses?: string[]
   }>
+  // NEW: Competitive landscape
+  competitiveLandscape?: {
+    directCompetitors: Array<{ name: string; description: string; pricing: string; strengths: string[]; weaknesses: string[] }>
+    indirectCompetitors: string[]
+    realCompetitor: string
+    differentiation: string
+    moatPotential: 'HIGH' | 'MEDIUM' | 'LOW'
+  }
   recommendations: string[]
+  // NEW: Assignments (YC-style homework)
+  assignments?: string[]
   // Market trends
   marketTrends?: Array<{
     trend: string
     impact: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL'
     description: string
   }>
-  // Customer validation
+  // Customer validation (legacy - keep for backward compatibility)
   customerValidation?: {
     problemSeverity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
     problemEvidence: string[]
@@ -59,6 +98,7 @@ export interface ValidationReport {
     confidence: number
     rationale: string
     keyConditions?: string[]
+    dealBreakers?: string[]
   }
   riskMatrix: Array<{
     risk: string
@@ -74,8 +114,9 @@ export interface ValidationReport {
     cons: string[]
     estimatedMRR: string
     implementationSteps?: string[]
+    fitForThisMarket?: 'HIGH' | 'MEDIUM' | 'LOW'
   }>
-  // NEW: Financial projections
+  // Financial projections
   financialProjections?: {
     year1Revenue: string
     year2Revenue: string
@@ -83,14 +124,19 @@ export interface ValidationReport {
     keyAssumptions: string[]
     breakEvenTimeline: string
     capitalRequired: string
+    unitEconomics?: {
+      targetCAC: string
+      targetLTV: string
+      targetRatio: string
+    }
   }
-  // NEW: MVP Roadmap
+  // MVP Roadmap
   mvpRoadmap?: {
-    phase1: { name: string; timeline: string; features: string[]; goal: string }
-    phase2: { name: string; timeline: string; features: string[]; goal: string }
-    phase3: { name: string; timeline: string; features: string[]; goal: string }
+    phase1: { name: string; timeline: string; features: string[]; goal: string; successMetrics?: string[] }
+    phase2: { name: string; timeline: string; features: string[]; goal: string; successMetrics?: string[] }
+    phase3: { name: string; timeline: string; features: string[]; goal: string; successMetrics?: string[] }
   }
-  // NEW: Go-to-Market Strategy
+  // Go-to-Market Strategy
   goToMarketStrategy?: {
     positioning: string
     channels: Array<{
@@ -156,152 +202,172 @@ export async function generateValidationReport(
     return mockReport(ideaTitle, ideaDescription)
   }
 
-  // Search for market data
-  const [marketSearch, competitorSearch, redditSearch] = await Promise.all([
-    googleSearch(`market size ${ideaTitle} TAM SAM`),
-    googleSearch(`competitors ${ideaTitle} alternative`),
-    googleSearch(`reddit ${ideaTitle} pain point problem`),
+  // Search for market data with enhanced queries
+  const [marketSearch, competitorSearch, redditSearch, workaroundSearch] = await Promise.all([
+    googleSearch(`market size ${ideaTitle} ${ideaDescription} TAM SAM SOM statistics 2024 2025`),
+    googleSearch(`competitors ${ideaTitle} ${ideaDescription} alternative vs comparison`),
+    googleSearch(`reddit "${ideaTitle}" problem pain point frustration OR "how to" ${ideaDescription.split(' ')[0] || ''}`),
+    googleSearch(`current solution workaround ${ideaDescription.split(' ')[0] || ''} problem manual process spreadsheet`),
   ])
 
-  // Generate report using Claude
+  // Generate report using Claude with gstack-style analysis framework
   const prompt = `
-You are an expert startup analyst with 20+ years of experience evaluating startups for Y Combinator and top VCs. Generate a COMPREHENSIVE, DEEP validation report for this startup idea.
+You are an expert startup analyst who has evaluated 5,000+ startups for Y Combinator, a16z, and Sequoia.
+Your analysis style is DIRECT, SPECIFIC, and CRITICAL — like YC's office hours diagnostic sessions.
 
-**Idea Title**: ${ideaTitle}
-**Idea Description**: ${ideaDescription}
+**CORE ANALYSIS PRINCIPLES (from gstack framework):**
 
-**Market Research Data**:
+1. **Specificity is the only currency** — Vague answers get pushed. "Enterprises in healthcare" is NOT a customer.
+   - Name a specific person, role, company, and pain point.
+   - Use concrete numbers, not ranges or estimates.
+
+2. **Interest is NOT demand** — Waitlists, signups, "that's interesting" do NOT count.
+   - Behavior counts: paying, expanding usage, panic when it breaks.
+   - A customer calling when your service goes down for 20 minutes = demand.
+
+3. **The status quo is the real competitor** — Not other startups, but the spreadsheet/Slack/manual workaround.
+   - Analyze what users currently do (even badly) to solve this.
+   - If "nothing" is the current solution, problem may not be painful enough.
+
+4. **The user's words beat the founder's pitch** — Gap between what founder says vs what users say is the truth.
+
+**Idea Being Analyzed:**
+- **Title**: ${ideaTitle}
+- **Description**: ${ideaDescription}
+
+**Research Data (from Google Search):**
+
+1. Market Data:
 ${JSON.stringify(marketSearch, null, 2)}
 
-**Competitor Data**:
+2. Competitor Data:
 ${JSON.stringify(competitorSearch, null, 2)}
 
-**User Discussion Data**:
+3. User Discussions (Reddit, forums):
 ${JSON.stringify(redditSearch, null, 2)}
 
-CRITICAL REQUIREMENTS:
-1. Be SPECIFIC - avoid generic advice. Use concrete numbers, names, and data points.
-2. Be CRITICAL - identify real risks and challenges, not just positive feedback.
-3. Be ACTIONABLE - every recommendation should have clear next steps.
-4. Be DEEP - each section should have 5-7 detailed points, not surface-level observations.
-5. Use DATA - reference market size, growth rates, and industry benchmarks where possible.
+4. Current Workarounds/Status Quo:
+${JSON.stringify(workaroundSearch, null, 2)}
 
-Generate a JSON report with this EXACT structure:
+---
+
+**CRITICAL OUTPUT REQUIREMENTS:**
+
+1. **Be SPECIFIC** — No generic advice. Every claim needs: numbers, names, sources, or direct quotes.
+2. **Be CRITICAL** — Identify REAL risks. If the idea has fundamental flaws, say so clearly.
+3. **Be ACTIONABLE** — Every recommendation must have clear next steps with timeline.
+4. **Be DEEP** — Surface-level analysis is worthless. Dig into the WHY behind each insight.
+5. **Challenge assumptions** — If the founder's framing is vague, reframe it more precisely.
+
+---
+
+**REQUIRED JSON STRUCTURE:**
+
 {
-  "overallScore": number (0-100, be honest and critical),
-  "executiveSummary": string (4-5 detailed paragraphs covering: problem, solution, market opportunity, competitive landscape, key risks, and final recommendation),
-  "greenLights": string[] (5-7 specific positive signals with data/explanation),
-  "redFlags": string[] (5-7 specific risks with severity explanation),
-  "marketSize": {
-    "TAM": string (with calculation methodology and source),
-    "SAM": string (with segmentation logic),
-    "SOM": string (with realistic market share assumptions)
-  },
-  "competitors": [
-    {
-      "name": string (real company names if known),
-      "description": string (detailed - what they do, funding, positioning),
-      "differentiation": string (specific how this idea can differentiate),
-      "strengths": string[],
-      "weaknesses": string[]
-    }
-  ],
-  "marketTrends": [
-    {
-      "trend": string,
-      "impact": "POSITIVE" | "NEGATIVE" | "NEUTRAL",
-      "description": string (detailed explanation with data)
-    }
-  ],
-  "customerValidation": {
+  "overallScore": number (0-100, be brutally honest — YC averages are 60-80 for funded startups),
+
+  "executiveSummary": string (5-6 paragraphs: problem reality, solution fit, market evidence, competitive truth, risk assessment, final verdict. Lead with the uncomfortable truth.),
+
+  "problemValidation": {
+    "problemExists": boolean,
     "problemSeverity": "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
-    "problemEvidence": string[] (quotes or data from Reddit/user discussions),
+    "problemEvidence": string[] (direct quotes from Reddit/forums showing real frustration),
+    "currentWorkaround": string (what users do NOW — the real competitor),
+    "workaroundCost": string (time/money lost with current approach),
     "willingnessToPay": "HIGH" | "MEDIUM" | "LOW",
-    "suggestedPricePoint": string,
-    "earlyAdopterProfile": string (detailed description)
+    "evidenceType": "PAYING" | "WAITING" | "INTERESTED" | "HYPOTHETICAL" (only PAYING counts as demand)
   },
-  "recommendations": string[] (7-10 specific, actionable steps with priority order),
-  "swotAnalysis": {
-    "strengths": string[] (5-7 items, specific to this idea),
-    "weaknesses": string[] (5-7 items, honest assessment),
-    "opportunities": string[] (5-7 items, market tailwinds),
-    "threats": string[] (5-7 items, competitive and market risks)
+
+  "customerSpecificity": {
+    "primaryICP": string (specific persona: "Sarah, 34, PM at Series B SaaS company" not "product managers"),
+    "specificCompanyTypes": string[] (e.g., "Series B SaaS, 50-200 employees, using Salesforce"),
+    "geographicFocus": string,
+    "budgetAuthority": string (do they control budget? what's their typical software spend?),
+    "buyingProcess": string (how do they discover/buy tools like this?),
+    "earlyAdopterCount": number (estimate of reachable early adopters in first 90 days)
   },
-  "targetAudience": {
-    "primaryICP": string (detailed persona with name, role, company size, industry),
-    "demographics": string (age, income, location, education, job title),
-    "psychographics": string (values, motivations, fears, aspirations),
-    "painPoints": string[] (5-7 specific pains with context),
-    "behaviorPatterns": string[] (where they hang out, what they read, buying behavior)
+
+  "marketReality": {
+    "marketSize": {
+      "TAM": string (with source/calculation),
+      "SAM": string (segment you can actually reach),
+      "SOM": string (realistic Year 3 share with math)
+    },
+    "marketTrend": "GROWING" | "STABLE" | "DECLINING",
+    "marketEvidence": string[] (specific data points, not vague claims),
+    "timingRisk": "TOO_EARLY" | "RIGHT_TIME" | "TOO_LATE"
   },
+
+  "competitiveLandscape": {
+    "directCompetitors": [{"name": string, "description": string, "pricing": string, "strengths": string[], "weaknesses": string[]}],
+    "indirectCompetitors": string[] (what users use now as workaround),
+    "realCompetitor": string (the status quo — usually "nothing" or "spreadsheet"),
+    "differentiation": string (specific, defensible, NOT "better UX"),
+    "moatPotential": "HIGH" | "MEDIUM" | "LOW"
+  },
+
   "goNoGoRecommendation": {
     "recommendation": "GO" | "NO-GO" | "CONDITIONAL",
     "confidence": number (0-100),
-    "rationale": string (3-4 detailed paragraphs explaining the reasoning),
-    "keyConditions": string[] (5-7 specific milestones to achieve)
+    "rationale": string (3-5 paragraphs — state your position clearly),
+    "dealBreakers": string[] (any show-stoppers that would kill this),
+    "keyConditions": string[] (5-7 milestones that MUST be hit)
   },
-  "riskMatrix": [
-    {
-      "risk": string,
-      "level": "HIGH" | "MEDIUM" | "LOW",
-      "impact": "HIGH" | "MEDIUM" | "LOW",
-      "likelihood": "HIGH" | "MEDIUM" | "LOW",
-      "mitigation": string (specific, actionable mitigation strategy)
-    }
-  ],
-  "revenueModelSuggestions": [
+
+  "greenLights": string[] (5-7 SPECIFIC positive signals — "growing market" alone doesn't count),
+
+  "redFlags": string[] (5-7 SPECIFIC risks — be brutally honest),
+
+  "swotAnalysis": {
+    "strengths": string[] (specific to THIS idea, not generic),
+    "weaknesses": string[] (honest assessment),
+    "opportunities": string[] (market tailwinds),
+    "threats": string[] (competitive and market risks)
+  },
+
+  "revenueModelAnalysis": [
     {
       "model": string,
-      "description": string (detailed explanation),
-      "pros": string[] (3-4 items),
-      "cons": string[] (3-4 items),
+      "fitForThisMarket": "HIGH" | "MEDIUM" | "LOW",
+      "description": string,
+      "pros": string[],
+      "cons": string[],
       "estimatedMRR": string,
-      "implementationSteps": string[] (3-5 steps to implement)
+      "implementationSteps": string[]
     }
   ],
+
   "financialProjections": {
-    "year1Revenue": string,
+    "year1Revenue": string (with customer count and pricing math),
     "year2Revenue": string,
     "year3Revenue": string,
     "keyAssumptions": string[],
     "breakEvenTimeline": string,
-    "capitalRequired": string
-  },
-  "mvpRoadmap": {
-    "phase1": {
-      "name": string,
-      "timeline": string,
-      "features": string[],
-      "goal": string
-    },
-    "phase2": {
-      "name": string,
-      "timeline": string,
-      "features": string[],
-      "goal": string
-    },
-    "phase3": {
-      "name": string,
-      "timeline": string,
-      "features": string[],
-      "goal": string
+    "capitalRequired": string,
+    "unitEconomics": {
+      "targetCAC": string,
+      "targetLTV": string,
+      "targetRatio": string
     }
   },
+
+  "mvpRoadmap": {
+    "phase1": {"name": string, "timeline": string, "features": string[], "goal": string, "successMetrics": string[]},
+    "phase2": {"name": string, "timeline": string, "features": string[], "goal": string, "successMetrics": string[]},
+    "phase3": {"name": string, "timeline": string, "features": string[], "goal": string, "successMetrics": string[]}
+  },
+
   "goToMarketStrategy": {
-    "positioning": string (one paragraph positioning statement),
-    "channels": [
-      {
-        "channel": string,
-        "rationale": string,
-        "expectedCAC": string,
-        "priority": "HIGH" | "MEDIUM" | "LOW"
-      }
-    ],
-    "launchStrategy": string (detailed pre-launch, launch, post-launch plan)
-  }
+    "positioning": string (one paragraph — lead with the pain, not features),
+    "channels": [{"channel": string, "rationale": string, "expectedCAC": string, "priority": "HIGH" | "MEDIUM" | "LOW"}],
+    "launchStrategy": string (pre-launch, launch day, post-launch specifics)
+  },
+
+  "assignments": string[] (5-7 specific assignments like YC homework — "Call 10 customers and ask X", NOT "do market research")
 }
 
-Return ONLY valid JSON, no markdown formatting. Make every section SUBSTANTIAL and SPECIFIC.
+Return ONLY valid JSON. No markdown. Every field must be populated with SPECIFIC, ACTIONABLE content.
+If search data is limited, acknowledge uncertainty but still provide your best analysis based on domain expertise.
 `
 
   try {
