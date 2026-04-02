@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { API_BASE_URL } from '@/lib/api-config'
 
 interface ReportData {
   preview: {
@@ -126,7 +125,7 @@ export default function Home() {
 
     try {
       // Note: On Render, this call can take 60-90 seconds
-      const response = await fetch(`${API_BASE_URL}/api/generate-report`, {
+      const response = await fetch('/api/generate-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ideaTitle, ideaDescription }),
@@ -151,7 +150,7 @@ export default function Home() {
 
   const handleUnlock = async (priceType: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/stripe/create-checkout`, {
+      const response = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ priceType, email }),
@@ -172,7 +171,7 @@ export default function Home() {
 
     setIsDownloadingPdf(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/generate-pdf`, {
+      const response = await fetch('/api/generate-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ideaTitle, ideaDescription }),
