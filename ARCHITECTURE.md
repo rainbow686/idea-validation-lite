@@ -211,5 +211,32 @@ git push origin main
 
 ---
 
-**决策状态**: ✅ 已实施  
+**决策状态**: ✅ 已部署并测试通过  
+**部署日期**: 2026-04-03  
+**后端 URL**: https://idea-validation-lite.onrender.com  
+**前端 URL**: https://idea-validation-lite.vercel.app  
 **下次审查**: 2026-05-03 (或月收入超过 $100 时)
+
+---
+
+## 部署验证
+
+### 后端测试 (Render) ✅
+
+```bash
+curl -X POST https://idea-validation-lite.onrender.com/api/generate-report \
+  -H "Content-Type: application/json" \
+  -d '{"ideaTitle":"测试咖啡","ideaDescription":"帮助咖啡店主"}'
+```
+
+**结果**: 成功
+- 响应时间：~60-90 秒
+- 报告分数：72/100
+- 所有 API 端点正常工作
+- 无超时错误
+
+### 前端测试 (Vercel) ⏳
+
+访问 https://idea-validation-lite.vercel.app
+
+**待确认**: 前端页面是否正常加载并调用 Render API
