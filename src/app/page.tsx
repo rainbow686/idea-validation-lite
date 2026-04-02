@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { API_BASE_URL } from '@/lib/api-config'
+import IdeaGenerator from '@/components/IdeaGenerator'
 
 interface ReportData {
   preview: {
@@ -117,6 +118,7 @@ export default function Home() {
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
   const [jobProgress, setJobProgress] = useState(0)
   const [jobStatus, setJobStatus] = useState('')
+  const [showIdeaGenerator, setShowIdeaGenerator] = useState(false)
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -201,6 +203,25 @@ export default function Home() {
     } finally {
       setIsDownloadingPdf(false)
     }
+  }
+
+  const handleIdeaSelect = (idea: {
+    title: string
+    description: string
+    industry: string
+    targetUser: string
+    painPoint: string
+    revenueModel: string
+    difficultyScore: number
+  }) => {
+    setIdeaTitle(idea.title)
+    setIdeaDescription(`${idea.description}
+
+目标用户：${idea.targetUser}
+核心痛点：${idea.painPoint}
+盈利模式：${idea.revenueModel}
+实施难度：${idea.difficultyScore}/10`)
+    setShowIdeaGenerator(false)
   }
 
   return (
@@ -294,6 +315,20 @@ export default function Home() {
                   >
                     {isGenerating ? 'Analyzing...' : 'Analyze Free'}
                   </button>
+
+                  {/* "我没有想法" Button */}
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowIdeaGenerator(true)}
+                      className="text-sm text-gray-500 hover:text-emerald-500 transition flex items-center justify-center gap-2 mx-auto"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      我没有想法，帮我生成一些创意
+                    </button>
+                  </div>
                 </form>
 
                 {/* Progress Indicator */}
@@ -1073,6 +1108,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Idea Generator Modal */}
+      {showIdeaGenerator && (
+        <IdeaGenerator
+          onSelectIdea={handleIdeaSelect}
+          onClose={() => setShowIdeaGenerator(false)}
+        />
+      )}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-12">
