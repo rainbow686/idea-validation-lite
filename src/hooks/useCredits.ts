@@ -14,6 +14,16 @@ interface UseCreditsReturn {
   usageHistory: CreditUsage[]
 }
 
+const supabaseUrl = typeof process.env.NEXT_PUBLIC_SUPABASE_URL === 'string' && process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith('http')
+  ? process.env.NEXT_PUBLIC_SUPABASE_URL
+  : ''
+const supabaseAnonKey = typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'string' && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  : ''
+
+// Only initialize client if env vars are valid (not during build)
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
+
 /**
  * Hook for managing user credits
  *
@@ -43,16 +53,16 @@ export function useCredits(): UseCreditsReturn {
   const [credits, setCredits] = useState<UserCredits | null>(null)
   const [payments, setPayments] = useState<Payment[]>([])
   const [usageHistory, setUsageHistory] = useState<CreditUsage[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(!supabase) // Skip loading if no supabase
   const [error, setError] = useState<string | null>(null)
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 
   // Fetch current user's credits
   const refreshCredits = useCallback(async () => {
+    if (!supabase) {
+      setIsLoading(false)
+      return
+    }
+
     try {
       setIsLoading(true)
       setError(null)
@@ -131,15 +141,23 @@ export function useCredits(): UseCreditsReturn {
     } finally {
       setIsLoading(false)
     }
-  }, [supabase])
+  }, [])
 
   // Consume credits for an action
   const consumeCredits = useCallback(async (
     amount: number,
     reportId?: string
   ): Promise<{ success: boolean; remaining: number; message: string }> => {
+    if (!supabase) {
+      return {
+        success: false,
+        remaining: credits?.total_credits || 0,
+        message: 'Supabase not configured',
+      }
+    }
+
     try {
-      const { data, error: consumeError } = await supabase
+      const { data, error: consumeError } = await supabase!
         .rpc('consume_credits', {
           credits_to_consume: amount,
           report_id: reportId,
@@ -178,7 +196,7 @@ export function useCredits(): UseCreditsReturn {
         message: err instanceof Error ? err.message : 'Failed to consume credits',
       }
     }
-  }, [supabase, credits])
+  }, [credits])
 
   // Initial fetch
   useEffect(() => {
