@@ -114,12 +114,17 @@ export default function Home() {
   const [email, setEmail] = useState('')
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
+  const [jobProgress, setJobProgress] = useState(0)
+  const [jobStatus, setJobStatus] = useState('')
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsGenerating(true)
+    setJobProgress(30)
+    setJobStatus('processing')
 
     try {
+      // Note: On Render, this call can take 60-90 seconds
       const response = await fetch('/api/generate-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -131,15 +136,16 @@ export default function Home() {
 
       if (data.success && data.data) {
         setReport(data.data)
+        setJobProgress(100)
+        setJobStatus('completed')
       } else if (data.error) {
         alert('Error: ' + data.error)
       }
     } catch (error) {
       console.error('Error generating report:', error)
-      alert('Failed to generate report')
-    } finally {
-      setIsGenerating(false)
+      alert('Failed to generate report. This may be due to network timeout - please try again.')
     }
+    setIsGenerating(false)
   }
 
   const handleUnlock = async (priceType: string) => {
@@ -263,15 +269,22 @@ export default function Home() {
           {/* Input Form (Integrated in Hero) */}
           {!report && (
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white rounded-2xl shadow-xl p-2 border border-gray-100">
-                <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-2">
+              <div className="bg-white rounded-2xl shadow-xl p-3 border border-gray-100">
+                <form onSubmit={handleGenerate} className="flex flex-col gap-3">
                   <input
                     type="text"
                     value={ideaTitle}
                     onChange={(e) => setIdeaTitle(e.target.value)}
-                    placeholder="Enter your startup idea..."
-                    className="flex-1 px-6 py-4 rounded-xl border-0 focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400"
+                    placeholder="你的创业创意，例如：AI 选址助手 - 帮助小生意主选店铺位置"
+                    className="px-6 py-4 rounded-xl border-0 focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400 text-base"
                     required
+                  />
+                  <textarea
+                    value={ideaDescription}
+                    onChange={(e) => setIdeaDescription(e.target.value)}
+                    placeholder="简单描述你的目标用户和核心价值，例如：为餐饮店主、零售店主提供 AI 驱动的选址分析，包括人流量、竞争对手分布、租金评估等"
+                    className="px-6 py-3 rounded-xl border-0 focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400 text-base resize-none"
+                    rows={3}
                   />
                   <button
                     type="submit"
@@ -281,6 +294,23 @@ export default function Home() {
                     {isGenerating ? 'Analyzing...' : 'Analyze Free'}
                   </button>
                 </form>
+
+                {/* Progress Indicator */}
+                {isGenerating && (
+                  <div className="mt-6 w-full max-w-md">
+                    <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full transition-all duration-500"
+                        style={{ width: `${jobProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-center text-sm text-gray-600 mt-2">
+                      {jobStatus === 'pending' && 'Starting analysis...'}
+                      {jobStatus === 'processing' && 'Searching market data and analyzing...'}
+                      {jobStatus === 'completed' && 'Report ready!'}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Trust Indicators */}
@@ -358,251 +388,271 @@ export default function Home() {
                 /* Full Report (Unlocked) */
                 <div className="space-y-6">
                   {/* Green Lights */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Green Lights</h4>
-                    <ul className="space-y-2">
-                      {report.full.greenLights.map((light, i) => (
-                        <li key={i} className="flex items-start">
-                          <span className="text-emerald-500 mr-2">✓</span>
-                          <span className="text-gray-700">{light}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {report.full.greenLights && report.full.greenLights.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Green Lights</h4>
+                      <ul className="space-y-2">
+                        {report.full.greenLights.map((light, i) => (
+                          <li key={i} className="flex items-start">
+                            <span className="text-emerald-500 mr-2">✓</span>
+                            <span className="text-gray-700">{light}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   {/* Market Size */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Market Size</h4>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-gray-50 p-4 rounded-lg text-center">
-                        <div className="text-sm text-gray-500">TAM</div>
-                        <div className="text-lg font-bold text-gray-900">{report.full.marketSize.TAM}</div>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg text-center">
-                        <div className="text-sm text-gray-500">SAM</div>
-                        <div className="text-lg font-bold text-gray-900">{report.full.marketSize.SAM}</div>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg text-center">
-                        <div className="text-sm text-gray-500">SOM</div>
-                        <div className="text-lg font-bold text-gray-900">{report.full.marketSize.SOM}</div>
+                  {report.full.marketSize && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Market Size</h4>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-gray-50 p-4 rounded-lg text-center">
+                          <div className="text-sm text-gray-500">TAM</div>
+                          <div className="text-lg font-bold text-gray-900">{report.full.marketSize.TAM}</div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg text-center">
+                          <div className="text-sm text-gray-500">SAM</div>
+                          <div className="text-lg font-bold text-gray-900">{report.full.marketSize.SAM}</div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg text-center">
+                          <div className="text-sm text-gray-500">SOM</div>
+                          <div className="text-lg font-bold text-gray-900">{report.full.marketSize.SOM}</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Competitors */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Competitors</h4>
-                    <div className="space-y-4">
-                      {report.full.competitors.map((competitor, i) => (
-                        <div key={i} className="bg-gray-50 p-4 rounded-lg">
-                          <div className="font-semibold text-gray-900 mb-1">{competitor.name}</div>
-                          <div className="text-sm text-gray-600 mb-2">{competitor.description}</div>
-                          <div className="text-sm text-emerald-600">
-                            <strong>Differentiation:</strong> {competitor.differentiation}
+                  {report.full.competitors && report.full.competitors.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Competitors</h4>
+                      <div className="space-y-4">
+                        {report.full.competitors.map((competitor, i) => (
+                          <div key={i} className="bg-gray-50 p-4 rounded-lg">
+                            <div className="font-semibold text-gray-900 mb-1">{competitor.name}</div>
+                            <div className="text-sm text-gray-600 mb-2">{competitor.description}</div>
+                            <div className="text-sm text-emerald-600">
+                              <strong>Differentiation:</strong> {competitor.differentiation}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Red Flags */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Red Flags</h4>
-                    <ul className="space-y-2">
-                      {report.full.redFlags.map((flag, i) => (
-                        <li key={i} className="flex items-start">
-                          <span className="text-red-500 mr-2">⚠</span>
-                          <span className="text-gray-700">{flag}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {report.full.redFlags && report.full.redFlags.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Red Flags</h4>
+                      <ul className="space-y-2">
+                        {report.full.redFlags.map((flag, i) => (
+                          <li key={i} className="flex items-start">
+                            <span className="text-red-500 mr-2">⚠</span>
+                            <span className="text-gray-700">{flag}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   {/* Recommendations */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Recommendations</h4>
-                    <ol className="space-y-2">
-                      {report.full.recommendations.map((rec, i) => (
-                        <li key={i} className="flex items-start">
-                          <span className="bg-emerald-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 flex-shrink-0">
-                            {i + 1}
-                          </span>
-                          <span className="text-gray-700">{rec}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
+                  {report.full.recommendations && report.full.recommendations.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Recommendations</h4>
+                      <ol className="space-y-2">
+                        {report.full.recommendations.map((rec, i) => (
+                          <li key={i} className="flex items-start">
+                            <span className="bg-emerald-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 flex-shrink-0">
+                              {i + 1}
+                            </span>
+                            <span className="text-gray-700">{rec}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
 
                   {/* GO/NO-GO Recommendation */}
-                  <div className="border-2 border-emerald-200 rounded-xl p-6 bg-gradient-to-r from-emerald-50 to-white">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Final Recommendation</h4>
-                    <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold mb-3 ${
-                      report.full.goNoGoRecommendation.recommendation === 'GO' ? 'bg-emerald-100 text-emerald-700' :
-                      report.full.goNoGoRecommendation.recommendation === 'NO-GO' ? 'bg-red-100 text-red-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {report.full.goNoGoRecommendation.recommendation === 'GO' && '✓ '}
-                      {report.full.goNoGoRecommendation.recommendation === 'NO-GO' && '✕ '}
-                      {report.full.goNoGoRecommendation.recommendation === 'CONDITIONAL' && '⚠ '}
-                      {report.full.goNoGoRecommendation.recommendation}
-                      <span className="ml-3 text-xs font-normal">
-                        Confidence: {report.full.goNoGoRecommendation.confidence}%
-                      </span>
-                    </div>
-                    <p className="text-gray-700 mb-3">{report.full.goNoGoRecommendation.rationale}</p>
-                    {report.full.goNoGoRecommendation.keyConditions && report.full.goNoGoRecommendation.keyConditions.length > 0 && (
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700 mb-2">Key Conditions:</p>
-                        <ul className="space-y-1">
-                          {report.full.goNoGoRecommendation.keyConditions.map((condition, i) => (
-                            <li key={i} className="text-sm text-gray-600 flex items-start">
-                              <span className="text-emerald-500 mr-2">→</span>
-                              {condition}
-                            </li>
-                          ))}
-                        </ul>
+                  {report.full.goNoGoRecommendation && (
+                    <div className="border-2 border-emerald-200 rounded-xl p-6 bg-gradient-to-r from-emerald-50 to-white">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Final Recommendation</h4>
+                      <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold mb-3 ${
+                        report.full.goNoGoRecommendation.recommendation === 'GO' ? 'bg-emerald-100 text-emerald-700' :
+                        report.full.goNoGoRecommendation.recommendation === 'NO-GO' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {report.full.goNoGoRecommendation.recommendation === 'GO' && '✓ '}
+                        {report.full.goNoGoRecommendation.recommendation === 'NO-GO' && '✕ '}
+                        {report.full.goNoGoRecommendation.recommendation === 'CONDITIONAL' && '⚠ '}
+                        {report.full.goNoGoRecommendation.recommendation}
+                        <span className="ml-3 text-xs font-normal">
+                          Confidence: {report.full.goNoGoRecommendation.confidence}%
+                        </span>
                       </div>
-                    )}
-                  </div>
+                      <p className="text-gray-700 mb-3">{report.full.goNoGoRecommendation.rationale}</p>
+                      {report.full.goNoGoRecommendation.keyConditions && report.full.goNoGoRecommendation.keyConditions.length > 0 && (
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-2">Key Conditions:</p>
+                          <ul className="space-y-1">
+                            {report.full.goNoGoRecommendation.keyConditions.map((condition, i) => (
+                              <li key={i} className="text-sm text-gray-600 flex items-start">
+                                <span className="text-emerald-500 mr-2">→</span>
+                                {condition}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* SWOT Analysis */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">SWOT Analysis</h4>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="bg-emerald-50 rounded-lg p-4">
-                        <h5 className="text-sm font-semibold text-emerald-700 mb-2">Strengths</h5>
-                        <ul className="space-y-1">
-                          {report.full.swotAnalysis.strengths.map((item, i) => (
-                            <li key={i} className="text-sm text-gray-700">• {item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="bg-red-50 rounded-lg p-4">
-                        <h5 className="text-sm font-semibold text-red-700 mb-2">Weaknesses</h5>
-                        <ul className="space-y-1">
-                          {report.full.swotAnalysis.weaknesses.map((item, i) => (
-                            <li key={i} className="text-sm text-gray-700">• {item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <h5 className="text-sm font-semibold text-blue-700 mb-2">Opportunities</h5>
-                        <ul className="space-y-1">
-                          {report.full.swotAnalysis.opportunities.map((item, i) => (
-                            <li key={i} className="text-sm text-gray-700">• {item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="bg-orange-50 rounded-lg p-4">
-                        <h5 className="text-sm font-semibold text-orange-700 mb-2">Threats</h5>
-                        <ul className="space-y-1">
-                          {report.full.swotAnalysis.threats.map((item, i) => (
-                            <li key={i} className="text-sm text-gray-700">• {item}</li>
-                          ))}
-                        </ul>
+                  {report.full.swotAnalysis && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">SWOT Analysis</h4>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="bg-emerald-50 rounded-lg p-4">
+                          <h5 className="text-sm font-semibold text-emerald-700 mb-2">Strengths</h5>
+                          <ul className="space-y-1">
+                            {(report.full.swotAnalysis.strengths || []).map((item, i) => (
+                              <li key={i} className="text-sm text-gray-700">• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="bg-red-50 rounded-lg p-4">
+                          <h5 className="text-sm font-semibold text-red-700 mb-2">Weaknesses</h5>
+                          <ul className="space-y-1">
+                            {(report.full.swotAnalysis.weaknesses || []).map((item, i) => (
+                              <li key={i} className="text-sm text-gray-700">• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <h5 className="text-sm font-semibold text-blue-700 mb-2">Opportunities</h5>
+                          <ul className="space-y-1">
+                            {(report.full.swotAnalysis.opportunities || []).map((item, i) => (
+                              <li key={i} className="text-sm text-gray-700">• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="bg-orange-50 rounded-lg p-4">
+                          <h5 className="text-sm font-semibold text-orange-700 mb-2">Threats</h5>
+                          <ul className="space-y-1">
+                            {(report.full.swotAnalysis.threats || []).map((item, i) => (
+                              <li key={i} className="text-sm text-gray-700">• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Target Audience */}
-                  <div className="border rounded-xl p-6 bg-gray-50">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Target Audience</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700 mb-1">Primary ICP</p>
-                        <p className="text-gray-700">{report.full.targetAudience.primaryICP}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700 mb-1">Demographics</p>
-                        <p className="text-gray-700">{report.full.targetAudience.demographics}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700 mb-1">Psychographics</p>
-                        <p className="text-gray-700">{report.full.targetAudience.psychographics}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700 mb-2">Pain Points</p>
-                        <ul className="space-y-1">
-                          {report.full.targetAudience.painPoints.map((pain, i) => (
-                            <li key={i} className="text-sm text-gray-700 flex items-start">
-                              <span className="text-red-500 mr-2">!</span>
-                              {pain}
-                            </li>
-                          ))}
-                        </ul>
+                  {report.full.targetAudience && (
+                    <div className="border rounded-xl p-6 bg-gray-50">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Target Audience</h4>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Primary ICP</p>
+                          <p className="text-gray-700">{report.full.targetAudience.primaryICP}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Demographics</p>
+                          <p className="text-gray-700">{report.full.targetAudience.demographics}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Psychographics</p>
+                          <p className="text-gray-700">{report.full.targetAudience.psychographics}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-2">Pain Points</p>
+                          <ul className="space-y-1">
+                            {(report.full.targetAudience.painPoints || []).map((pain, i) => (
+                              <li key={i} className="text-sm text-gray-700 flex items-start">
+                                <span className="text-red-500 mr-2">!</span>
+                                {pain}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Risk Matrix */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Risk Matrix</h4>
-                    <div className="space-y-3">
-                      {report.full.riskMatrix.map((riskItem, i) => (
-                        <div key={i} className="border rounded-lg p-4 hover:shadow-md transition">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-semibold text-gray-900">{riskItem.risk}</span>
-                            <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                              riskItem.level === 'HIGH' ? 'bg-red-100 text-red-700' :
-                              riskItem.level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-emerald-100 text-emerald-700'
-                            }`}>
-                              {riskItem.level} RISK
-                            </span>
+                  {report.full.riskMatrix && report.full.riskMatrix.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Risk Matrix</h4>
+                      <div className="space-y-3">
+                        {report.full.riskMatrix.map((riskItem, i) => (
+                          <div key={i} className="border rounded-lg p-4 hover:shadow-md transition">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="font-semibold text-gray-900">{riskItem.risk}</span>
+                              <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                riskItem.level === 'HIGH' ? 'bg-red-100 text-red-700' :
+                                riskItem.level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-emerald-100 text-emerald-700'
+                              }`}>
+                                {riskItem.level} RISK
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-600 mb-2">
+                              Impact: <span className={riskItem.impact === 'HIGH' ? 'font-semibold text-red-600' : 'text-gray-700'}>{riskItem.impact}</span>
+                              {' · '}
+                              Likelihood: <span className={riskItem.likelihood === 'HIGH' ? 'font-semibold text-red-600' : 'text-gray-700'}>{riskItem.likelihood}</span>
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              <span className="font-semibold">Mitigation: </span>
+                              {riskItem.mitigation}
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-600 mb-2">
-                            Impact: <span className={riskItem.impact === 'HIGH' ? 'font-semibold text-red-600' : 'text-gray-700'}>{riskItem.impact}</span>
-                            {' · '}
-                            Likelihood: <span className={riskItem.likelihood === 'HIGH' ? 'font-semibold text-red-600' : 'text-gray-700'}>{riskItem.likelihood}</span>
-                          </div>
-                          <div className="text-sm text-gray-700">
-                            <span className="font-semibold">Mitigation: </span>
-                            {riskItem.mitigation}
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Revenue Model Suggestions */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Revenue Model Suggestions</h4>
-                    <div className="space-y-4">
-                      {report.full.revenueModelSuggestions.map((model, i) => (
-                        <div key={i} className="border rounded-xl p-5 bg-white shadow-sm">
-                          <div className="flex justify-between items-start mb-2">
-                            <h5 className="text-base font-bold text-gray-900">{model.model}</h5>
-                            <span className="text-sm font-semibold text-emerald-600">{model.estimatedMRR}</span>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-3">{model.description}</p>
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-xs font-semibold text-emerald-700 mb-1">Pros</p>
-                              <ul className="space-y-1">
-                                {model.pros.map((pro, j) => (
-                                  <li key={j} className="text-sm text-gray-700 flex items-start">
-                                    <span className="text-emerald-500 mr-2">✓</span>
-                                    {pro}
-                                  </li>
-                                ))}
-                              </ul>
+                  {report.full.revenueModelSuggestions && report.full.revenueModelSuggestions.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Revenue Model Suggestions</h4>
+                      <div className="space-y-4">
+                        {report.full.revenueModelSuggestions.map((model, i) => (
+                          <div key={i} className="border rounded-xl p-5 bg-white shadow-sm">
+                            <div className="flex justify-between items-start mb-2">
+                              <h5 className="text-base font-bold text-gray-900">{model.model}</h5>
+                              <span className="text-sm font-semibold text-emerald-600">{model.estimatedMRR}</span>
                             </div>
-                            <div>
-                              <p className="text-xs font-semibold text-red-700 mb-1">Cons</p>
-                              <ul className="space-y-1">
-                                {model.cons.map((con, j) => (
-                                  <li key={j} className="text-sm text-gray-700 flex items-start">
-                                    <span className="text-red-500 mr-2">✕</span>
-                                    {con}
-                                  </li>
-                                ))}
-                              </ul>
+                            <p className="text-sm text-gray-600 mb-3">{model.description}</p>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-emerald-700 mb-1">Pros</p>
+                                <ul className="space-y-1">
+                                  {model.pros.map((pro, j) => (
+                                    <li key={j} className="text-sm text-gray-700 flex items-start">
+                                      <span className="text-emerald-500 mr-2">✓</span>
+                                      {pro}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-red-700 mb-1">Cons</p>
+                                <ul className="space-y-1">
+                                  {model.cons.map((con, j) => (
+                                    <li key={j} className="text-sm text-gray-700 flex items-start">
+                                      <span className="text-red-500 mr-2">✕</span>
+                                      {con}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Market Trends */}
                   {report.full.marketTrends && report.full.marketTrends.length > 0 && (

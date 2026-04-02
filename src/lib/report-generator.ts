@@ -1,5 +1,5 @@
 /**
- * Generate idea validation report using Google Search API + Claude
+ * Generate idea validation report using Tavily Search API + Claude
  * Analysis framework inspired by Y Combinator office hours and gstack skills
  */
 
@@ -150,28 +150,51 @@ export interface ValidationReport {
 }
 
 export async function googleSearch(query: string): Promise<SearchResult[]> {
-  const apiKey = process.env.GOOGLE_SEARCH_API_KEY
-  const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID
+  const tavilyApiKey = process.env.TAVILY_API_KEY
 
-  if (!apiKey || !searchEngineId) {
+  if (!tavilyApiKey) {
     // Fallback to mock data for development
-    console.warn('Google Search API not configured, using mock data')
+    console.warn('Tavily API not configured, using mock data')
     return mockSearchResults(query)
   }
 
-  const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}&num=5`
+  const url = 'https://api.tavily.com/search'
+  console.log('[Tavily] Starting search for:', query.substring(0, 50))
 
   try {
-    const response = await fetch(url)
-    const data = await response.json()
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        api_key: tavilyApiKey,
+        query,
+        search_depth: 'advanced',
+        max_results: 5,
+        include_answer: false,
+        include_raw_content: false,
+      }),
+    })
 
-    return (data.items || []).map((item: { title: string; snippet: string; link: string }) => ({
-      title: item.title,
-      snippet: item.snippet,
-      link: item.link,
+    console.log('[Tavily] Response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`Tavily API HTTP error: ${response.status} - ${errorText}`)
+      return mockSearchResults(query)
+    }
+
+    const data = await response.json()
+    console.log('[Tavily] Results count:', data.results?.length || 0)
+
+    return (data.results || []).map((item: { title: string; content: string; url: string }) => ({
+      title: item.title || query,
+      snippet: item.content || '',
+      link: item.url || '',
     }))
   } catch (error) {
-    console.error('Google Search API error:', error)
+    console.error('[Tavily] Error:', error)
     return mockSearchResults(query)
   }
 }
@@ -202,201 +225,257 @@ export async function generateValidationReport(
     return mockReport(ideaTitle, ideaDescription)
   }
 
-  // Search for market data with enhanced queries
-  const [marketSearch, competitorSearch, redditSearch, workaroundSearch] = await Promise.all([
+  // Debug: Log the idea being analyzed
+  console.log('\n=== Generating Validation Report ===')
+  console.log('Idea Title:', ideaTitle)
+  console.log('Idea Description:', ideaDescription)
+  console.log('=====================================\n')
+
+  // Search for market data - optimized for faster response (2 searches instead of 4)
+  const [marketSearch, competitorSearch] = await Promise.all([
     googleSearch(`market size ${ideaTitle} ${ideaDescription} TAM SAM SOM statistics 2024 2025`),
     googleSearch(`competitors ${ideaTitle} ${ideaDescription} alternative vs comparison`),
-    googleSearch(`reddit "${ideaTitle}" problem pain point frustration OR "how to" ${ideaDescription.split(' ')[0] || ''}`),
-    googleSearch(`current solution workaround ${ideaDescription.split(' ')[0] || ''} problem manual process spreadsheet`),
   ])
+
+  // Debug: Log search queries
+  console.log('Search results:', {
+    market: marketSearch.length,
+    competitor: competitorSearch.length,
+  })
 
   // Generate report using Claude with gstack-style analysis framework
   const prompt = `
-You are an expert startup analyst who has evaluated 5,000+ startups for Y Combinator, a16z, and Sequoia.
-Your analysis style is DIRECT, SPECIFIC, and CRITICAL — like YC's office hours diagnostic sessions.
+你是一位专业的创业分析师，已经为 Y Combinator、a16z 和 Sequoia 评估过 5000+ 个创业项目。
+你的分析风格是直接、具体、批判性的——就像 YC 办公室时间的诊断会议。
 
-**CORE ANALYSIS PRINCIPLES (from gstack framework):**
+**核心分析原则（来自 gstack 框架）：**
 
-1. **Specificity is the only currency** — Vague answers get pushed. "Enterprises in healthcare" is NOT a customer.
-   - Name a specific person, role, company, and pain point.
-   - Use concrete numbers, not ranges or estimates.
+1. **具体性是唯一的货币** — 模糊的答案会被拒绝。"医疗行业企业"不是客户。
+   - 说出具体的人、角色、公司和痛点。
+   - 使用具体数字，不是范围或估计。
 
-2. **Interest is NOT demand** — Waitlists, signups, "that's interesting" do NOT count.
-   - Behavior counts: paying, expanding usage, panic when it breaks.
-   - A customer calling when your service goes down for 20 minutes = demand.
+2. **兴趣不是需求** — 等待名单、注册、"这很有趣"都不算数。
+   - 行为才算：付费、扩大使用、出问题时 panic。
+   - 客户在你服务中断 20 分钟时打电话给你 = 真实需求。
 
-3. **The status quo is the real competitor** — Not other startups, but the spreadsheet/Slack/manual workaround.
-   - Analyze what users currently do (even badly) to solve this.
-   - If "nothing" is the current solution, problem may not be painful enough.
+3. **现状是真正的竞争对手** — 不是其他创业公司，而是用户现在的 spreadsheet/Slack/手动方案。
+   - 分析用户现在做什么（即使很糟糕）来解决这个问题。
+   - 如果"什么都不做"是现在的方案，问题可能不够痛。
 
-4. **The user's words beat the founder's pitch** — Gap between what founder says vs what users say is the truth.
+4. **用户的话胜过创始人的演讲** — 创始人说的和用户说的之间的差距就是真相。
 
-**Idea Being Analyzed:**
-- **Title**: ${ideaTitle}
-- **Description**: ${ideaDescription}
+**正在分析的创意：**
+- **标题**: ${ideaTitle}
+- **描述**: ${ideaDescription}
 
-**Research Data (from Google Search):**
+**研究数据（来自 Tavily Search）：**
 
-1. Market Data:
+1. 市场数据：
 ${JSON.stringify(marketSearch, null, 2)}
 
-2. Competitor Data:
+2. 竞争对手数据：
 ${JSON.stringify(competitorSearch, null, 2)}
 
-3. User Discussions (Reddit, forums):
-${JSON.stringify(redditSearch, null, 2)}
-
-4. Current Workarounds/Status Quo:
-${JSON.stringify(workaroundSearch, null, 2)}
+注意：Reddit 用户讨论和当前替代方案数据未包含，请基于已有搜索数据和市场知识进行分析。
 
 ---
 
-**CRITICAL OUTPUT REQUIREMENTS:**
+**关键输出要求：**
 
-1. **Be SPECIFIC** — No generic advice. Every claim needs: numbers, names, sources, or direct quotes.
-2. **Be CRITICAL** — Identify REAL risks. If the idea has fundamental flaws, say so clearly.
-3. **Be ACTIONABLE** — Every recommendation must have clear next steps with timeline.
-4. **Be DEEP** — Surface-level analysis is worthless. Dig into the WHY behind each insight.
-5. **Challenge assumptions** — If the founder's framing is vague, reframe it more precisely.
+1. **具体** — 不要通用建议。每个论点需要：数字、名称、来源或直接引用。
+2. **批判性** — 识别真实风险。如果创意有根本缺陷，清楚说出来。
+3. **可执行** — 每个建议必须有清晰的下一步和时间线。
+4. **深入** — 表面分析没有价值。深入挖掘每个洞察背后的 WHY。
+5. **挑战假设** — 如果创始人的框架模糊，更精确地重新定义它。
 
 ---
 
-**REQUIRED JSON STRUCTURE:**
+**必需的 JSON 结构：**
 
 {
-  "overallScore": number (0-100, be brutally honest — YC averages are 60-80 for funded startups),
+  "overallScore": 数字 (0-100，诚实评分 — YC 资助的创业公司平均 60-80),
 
-  "executiveSummary": string (5-6 paragraphs: problem reality, solution fit, market evidence, competitive truth, risk assessment, final verdict. Lead with the uncomfortable truth.),
+  "executiveSummary": 字符串 (5-6 段：问题现实、解决方案匹配、市场证据、竞争真相、风险评估、最终结论。直接说不舒服的事实。),
 
   "problemValidation": {
-    "problemExists": boolean,
+    "problemExists": 布尔值,
     "problemSeverity": "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
-    "problemEvidence": string[] (direct quotes from Reddit/forums showing real frustration),
-    "currentWorkaround": string (what users do NOW — the real competitor),
-    "workaroundCost": string (time/money lost with current approach),
+    "problemEvidence": 字符串数组（来自 Reddit/论坛的真实挫折引用）,
+    "currentWorkaround": 字符串（用户现在做什么——真正的竞争对手）,
+    "workaroundCost": 字符串（当前方案损失的时间/金钱）,
     "willingnessToPay": "HIGH" | "MEDIUM" | "LOW",
-    "evidenceType": "PAYING" | "WAITING" | "INTERESTED" | "HYPOTHETICAL" (only PAYING counts as demand)
+    "evidenceType": "PAYING" | "WAITING" | "INTERESTED" | "HYPOTHETICAL"（只有 PAYING 算需求）
   },
 
   "customerSpecificity": {
-    "primaryICP": string (specific persona: "Sarah, 34, PM at Series B SaaS company" not "product managers"),
-    "specificCompanyTypes": string[] (e.g., "Series B SaaS, 50-200 employees, using Salesforce"),
-    "geographicFocus": string,
-    "budgetAuthority": string (do they control budget? what's their typical software spend?),
-    "buyingProcess": string (how do they discover/buy tools like this?),
-    "earlyAdopterCount": number (estimate of reachable early adopters in first 90 days)
+    "primaryICP": 字符串（具体人物："张强，35 岁，餐饮连锁老板，年营收 500 万" 不是 "小企业主"）,
+    "specificCompanyTypes": 字符串数组,
+    "geographicFocus": 字符串,
+    "budgetAuthority": 字符串（他们控制预算吗？典型软件支出是多少？）,
+    "buyingProcess": 字符串（他们如何发现/购买这类工具？）,
+    "earlyAdopterCount": 数字（90 天内可触达的早期采用者数量估计）
   },
 
   "marketReality": {
     "marketSize": {
-      "TAM": string (with source/calculation),
-      "SAM": string (segment you can actually reach),
-      "SOM": string (realistic Year 3 share with math)
+      "TAM": 字符串（带来源/计算）,
+      "SAM": 字符串（实际可触达的细分市场）,
+      "SOM": 字符串（第 3 年 realistic 份额，带计算）
     },
     "marketTrend": "GROWING" | "STABLE" | "DECLINING",
-    "marketEvidence": string[] (specific data points, not vague claims),
+    "marketEvidence": 字符串数组（具体数据点，不是模糊声明）,
     "timingRisk": "TOO_EARLY" | "RIGHT_TIME" | "TOO_LATE"
   },
 
-  "competitiveLandscape": {
-    "directCompetitors": [{"name": string, "description": string, "pricing": string, "strengths": string[], "weaknesses": string[]}],
-    "indirectCompetitors": string[] (what users use now as workaround),
-    "realCompetitor": string (the status quo — usually "nothing" or "spreadsheet"),
-    "differentiation": string (specific, defensible, NOT "better UX"),
-    "moatPotential": "HIGH" | "MEDIUM" | "LOW"
-  },
+  "competitors": [{"name": 字符串，"description": 字符串，"differentiation": 字符串，"strengths": 字符串数组，"weaknesses": 字符串数组}],
 
   "goNoGoRecommendation": {
     "recommendation": "GO" | "NO-GO" | "CONDITIONAL",
-    "confidence": number (0-100),
-    "rationale": string (3-5 paragraphs — state your position clearly),
-    "dealBreakers": string[] (any show-stoppers that would kill this),
-    "keyConditions": string[] (5-7 milestones that MUST be hit)
+    "confidence": 数字 (0-100),
+    "rationale": 字符串 (3-5 段——清楚陈述你的立场),
+    "dealBreakers": 字符串数组（任何致命问题）,
+    "keyConditions": 字符串数组 (5-7 个必须达成的里程碑)
   },
 
-  "greenLights": string[] (5-7 SPECIFIC positive signals — "growing market" alone doesn't count),
+  "greenLights": 字符串数组 (5-7 个具体积极信号 — "增长市场"本身不够),
 
-  "redFlags": string[] (5-7 SPECIFIC risks — be brutally honest),
+  "redFlags": 字符串数组 (5-7 个具体风险 — 诚实评估),
 
   "swotAnalysis": {
-    "strengths": string[] (specific to THIS idea, not generic),
-    "weaknesses": string[] (honest assessment),
-    "opportunities": string[] (market tailwinds),
-    "threats": string[] (competitive and market risks)
+    "strengths": 字符串数组（针对这个创意，不是通用的）,
+    "weaknesses": 字符串数组（诚实评估）,
+    "opportunities": 字符串数组（市场顺风）,
+    "threats": 字符串数组（竞争和市场风险）
   },
 
   "revenueModelAnalysis": [
     {
-      "model": string,
+      "model": 字符串，
       "fitForThisMarket": "HIGH" | "MEDIUM" | "LOW",
-      "description": string,
-      "pros": string[],
-      "cons": string[],
-      "estimatedMRR": string,
-      "implementationSteps": string[]
+      "description": 字符串，
+      "pros": 字符串数组，
+      "cons": 字符串数组，
+      "estimatedMRR": 字符串，
+      "implementationSteps": 字符串数组
     }
   ],
 
   "financialProjections": {
-    "year1Revenue": string (with customer count and pricing math),
-    "year2Revenue": string,
-    "year3Revenue": string,
-    "keyAssumptions": string[],
-    "breakEvenTimeline": string,
-    "capitalRequired": string,
+    "year1Revenue": 字符串（带客户数量和定价计算）,
+    "year2Revenue": 字符串，
+    "year3Revenue": 字符串，
+    "keyAssumptions": 字符串数组，
+    "breakEvenTimeline": 字符串，
+    "capitalRequired": 字符串，
     "unitEconomics": {
-      "targetCAC": string,
-      "targetLTV": string,
-      "targetRatio": string
+      "targetCAC": 字符串，
+      "targetLTV": 字符串，
+      "targetRatio": 字符串
     }
   },
 
   "mvpRoadmap": {
-    "phase1": {"name": string, "timeline": string, "features": string[], "goal": string, "successMetrics": string[]},
-    "phase2": {"name": string, "timeline": string, "features": string[], "goal": string, "successMetrics": string[]},
-    "phase3": {"name": string, "timeline": string, "features": string[], "goal": string, "successMetrics": string[]}
+    "phase1": {"name": 字符串，"timeline": 字符串，"features": 字符串数组，"goal": 字符串，"successMetrics": 字符串数组},
+    "phase2": {"name": 字符串，"timeline": 字符串，"features": 字符串数组，"goal": 字符串，"successMetrics": 字符串数组},
+    "phase3": {"name": 字符串，"timeline": 字符串，"features": 字符串数组，"goal": 字符串，"successMetrics": 字符串数组}
   },
 
   "goToMarketStrategy": {
-    "positioning": string (one paragraph — lead with the pain, not features),
-    "channels": [{"channel": string, "rationale": string, "expectedCAC": string, "priority": "HIGH" | "MEDIUM" | "LOW"}],
-    "launchStrategy": string (pre-launch, launch day, post-launch specifics)
+    "positioning": 字符串（一段——强调痛点，不是功能）,
+    "channels": [{"channel": 字符串，"rationale": 字符串，"expectedCAC": 字符串，"priority": "HIGH" | "MEDIUM" | "LOW"}],
+    "launchStrategy": 字符串（发布前、发布当天、发布后的具体计划）
   },
 
-  "assignments": string[] (5-7 specific assignments like YC homework — "Call 10 customers and ask X", NOT "do market research")
+  "assignments": 字符串数组 (5-7 个具体作业，像 YC 家庭作业 — "打 10 个客户电话问 X"，不是"做市场研究")
 }
 
-Return ONLY valid JSON. No markdown. Every field must be populated with SPECIFIC, ACTIONABLE content.
-If search data is limited, acknowledge uncertainty but still provide your best analysis based on domain expertise.
+只返回有效的 JSON。不要用 Markdown 代码块包裹。不要有任何解释文字。
+每个字段必须填入具体的、可执行的内容。
+如果搜索数据有限，承认不确定性，但仍然基于领域专业知识提供最佳分析。
+使用中文输出所有内容。
 `
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const baseURL = process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'
+    console.log('Anthropic API config:', { baseURL, hasKey: !!anthropicApiKey })
+    const response = await fetch(`${baseURL}/v1/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': anthropicApiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${anthropicApiKey}`,
+        'anthropic-version': '2023-07-12',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2048,
+        model: 'qwen3.5-plus',
+        max_tokens: 8192,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
 
-    const data = await response.json()
-    const content = data.content[0].text
-
-    // Parse JSON from response
-    const jsonMatch = content.match(/\{[\s\S]*\}/)
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0])
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`Anthropic API HTTP error: ${response.status} - ${errorText}`)
+      throw new Error(`API error: ${response.status}`)
     }
 
-    return mockReport(ideaTitle, ideaDescription)
+    const data = await response.json()
+    console.log('Anthropic API response:', {
+      id: data.id,
+      model: data.model,
+      usage: data.usage,
+    })
+
+    // Get content from response - handle Alibaba Anthropic format with thinking + text blocks
+    const contentArray = data.content || []
+    let content = ''
+
+    // Find the text block (skip thinking blocks)
+    for (const block of contentArray) {
+      if (block.type === 'text' && block.text) {
+        content = block.text
+        break
+      }
+    }
+
+    // Fallback to first block if no text block found
+    if (!content && contentArray.length > 0) {
+      content = contentArray[0].text || ''
+    }
+
+    if (!content) {
+      console.error('No content in response')
+      console.log('Full response:', JSON.stringify(data, null, 2).substring(0, 500))
+      return mockReport(ideaTitle, ideaDescription)
+    }
+
+    // Parse JSON from response - handle markdown code blocks
+    let jsonContent = content
+    const markdownJsonMatch = content.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/)
+    if (markdownJsonMatch) {
+      jsonContent = markdownJsonMatch[1]
+    } else {
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        jsonContent = jsonMatch[0]
+      }
+    }
+
+    try {
+      const parsed = JSON.parse(jsonContent)
+      console.log('Parsed report structure:', {
+        hasOverallScore: !!parsed.overallScore,
+        hasGreenLights: !!parsed.greenLights,
+        hasCompetitors: !!parsed.competitors,
+        greenLightsLength: parsed.greenLights?.length || 0,
+      })
+      return parsed
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError)
+      console.log('Raw content (first 1000 chars):', jsonContent.substring(0, 1000))
+      return mockReport(ideaTitle, ideaDescription)
+    }
   } catch (error) {
-    console.error('Claude API error:', error)
+    console.error('Anthropic API error:', error)
     return mockReport(ideaTitle, ideaDescription)
   }
 }

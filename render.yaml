@@ -1,0 +1,34 @@
+services:
+  # API Service (Render)
+  - type: web
+    name: idea-validation-api
+    env: node
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_BASE_URL
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_PRICE_ID_ONE_TIME
+        sync: false
+      - key: STRIPE_PRICE_ID_MONTHLY
+        sync: false

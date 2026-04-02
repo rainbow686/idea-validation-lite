@@ -12,11 +12,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate the report
+    console.log('[API] Starting report generation for:', ideaTitle)
+
+    // Generate the report synchronously (no timeout limit on Render)
     const report = await generateValidationReport(
       ideaTitle,
       ideaDescription || ''
     )
+
+    console.log('[API] Report generated successfully, score:', report.overallScore)
 
     // Return the report with preview/paid structure
     return NextResponse.json({
@@ -26,9 +30,9 @@ export async function POST(request: NextRequest) {
         preview: {
           overallScore: report.overallScore,
           executiveSummary: report.executiveSummary,
-          greenLightsCount: report.greenLights.length,
-          competitorsCount: report.competitors.length,
-          redFlagsCount: report.redFlags.length,
+          greenLightsCount: report.greenLights?.length || 0,
+          competitorsCount: report.competitors?.length || report.competitiveLandscape?.directCompetitors?.length || 0,
+          redFlagsCount: report.redFlags?.length || 0,
         },
         // Full data (paid users see this)
         full: report,
@@ -37,7 +41,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error generating report:', error)
     return NextResponse.json(
-      { error: 'Failed to generate report' },
+      { error: 'Failed to generate report: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     )
   }
