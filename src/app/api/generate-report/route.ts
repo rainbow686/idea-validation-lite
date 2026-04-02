@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generateValidationReport } from '@/lib/report-generator'
 import { createClient } from '@supabase/supabase-js'
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+
 /**
  * POST /api/generate-report
  *
@@ -168,6 +171,35 @@ export async function POST(request: NextRequest) {
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
+
+      // Auto-generate SEO page for public sharing (optional)
+      // This creates an anonymous public version for SEO purposes
+      try {
+        const slug = ideaTitle
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .substring(0, 60)
+
+        await supabase
+          .from('reports')
+          .update({ slug })
+          .eq('id', savedReport.id)
+
+        // Trigger SEO page generation in background
+        fetch(`${process.env.NEXT_PUBLIC_SITE_URL || BASE_URL}/api/seo/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ideaTitle,
+            ideaDescription,
+            reportData: report,
+          }),
+        }).catch(err => console.error('Failed to generate SEO page:', err))
+      } catch (seoError) {
+        console.error('Failed to setup SEO page:', seoError)
+        // Non-critical, continue with normal flow
+      }
     }
 
     // Return the report with preview/paid structure
