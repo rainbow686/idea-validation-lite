@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { API_BASE_URL } from '@/lib/api-config'
 import IdeaGenerator from '@/components/IdeaGenerator'
+import ShareModal from '@/components/ShareModal'
 
 interface ReportData {
   preview: {
@@ -119,6 +120,7 @@ export default function Home() {
   const [jobProgress, setJobProgress] = useState(0)
   const [jobStatus, setJobStatus] = useState('')
   const [showIdeaGenerator, setShowIdeaGenerator] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -141,6 +143,8 @@ export default function Home() {
         setReport(data.data)
         setJobProgress(100)
         setJobStatus('completed')
+        // Auto-show share modal after report generation
+        setShowShareModal(true)
       } else if (data.error) {
         alert('Error: ' + data.error)
       }
@@ -233,6 +237,9 @@ export default function Home() {
             IdeaValidation<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">Lite</span>
           </h1>
           <nav className="flex gap-4">
+            <a href="/validated" className="text-gray-600 hover:text-gray-900 transition">
+              公开验证池
+            </a>
             <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition">
               How it works
             </a>
@@ -1114,6 +1121,16 @@ export default function Home() {
         <IdeaGenerator
           onSelectIdea={handleIdeaSelect}
           onClose={() => setShowIdeaGenerator(false)}
+        />
+      )}
+
+      {/* Share Modal */}
+      {report && (
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          reportData={report.full}
+          ideaTitle={ideaTitle}
         />
       )}
 
