@@ -52,7 +52,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-start justify-center p-4 pt-32">
+    <div className="fixed inset-0 z-[99999] flex items-start justify-center p-4 pt-40">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
