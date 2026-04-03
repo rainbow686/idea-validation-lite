@@ -13,8 +13,9 @@ const app = express()
 const PORT = parseInt(process.env.PORT || '3000', 10)
 
 // CORS for Vercel frontend
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',')
 app.use(cors({
-  origin: ['https://idea-validation-lite.vercel.app', 'http://localhost:3000'],
+  origin: allowedOrigins,
   credentials: true
 }))
 

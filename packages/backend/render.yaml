@@ -7,11 +7,13 @@ services:
     plan: free
     branch: main
     rootDir: .
-    buildCommand: npm install --include=dev && npm run build:api
-    startCommand: npm run start:api
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 3000
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ANTHROPIC_BASE_URL
@@ -26,3 +28,5 @@ services:
         sync: false
       - key: NEXT_PUBLIC_APP_URL
         sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://idea-validation-lite.vercel.app,http://localhost:3000
