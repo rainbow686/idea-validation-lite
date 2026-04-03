@@ -147,6 +147,24 @@ export interface ValidationReport {
     }>
     launchStrategy: string
   }
+  // P2 - Differentiation features
+  brandArchetype?: {
+    archetype: string
+    name: string
+    description: string
+    characteristics: string[]
+    brandVoice: string
+    visualStyle: string
+    examples: string[]
+    recommendation: string
+  }
+  marketingCopy?: {
+    elevatorPitch: string
+    twitterCopy: string[]
+    adHeadlines: string[]
+    landingPageHeadlines: string[]
+    taglines: string[]
+  }
 }
 
 export async function googleSearch(query: string): Promise<SearchResult[]> {
@@ -386,7 +404,27 @@ ${JSON.stringify(competitorSearch, null, 2)}
     "launchStrategy": 字符串（发布前、发布当天、发布后的具体计划）
   },
 
-  "assignments": 字符串数组 (5-7 个具体作业，像 YC 家庭作业 — "打 10 个客户电话问 X"，不是"做市场研究")
+  "assignments": 字符串数组 (5-7 个具体作业，像 YC 家庭作业 — "打 10 个客户电话问 X"，不是"做市场研究"),
+
+  // P2 - 差异化创新功能
+  "brandArchetype": {
+    "archetype": 字符串（12 种原型之一：hero/sage/creator/innocent/explorer/rebel/magician/lover/caregiver/jester/everyman/ruler）,
+    "name": 字符串（中文名称，如"英雄 (Hero)"）,
+    "description": 字符串，
+    "characteristics": 字符串数组，
+    "brandVoice": 字符串，
+    "visualStyle": 字符串，
+    "examples": 字符串数组，
+    "recommendation": 字符串（如何应用到此创意）
+  },
+
+  "marketingCopy": {
+    "elevatorPitch": 字符串（15-25 字）,
+    "twitterCopy": 字符串数组（3 个变体）,
+    "adHeadlines": 字符串数组（5 个变体）,
+    "landingPageHeadlines": 字符串数组（3 个变体）,
+    "taglines": 字符串数组（3 个变体）
+  }
 }
 
 只返回有效的 JSON。不要用 Markdown 代码块包裹。不要有任何解释文字。
@@ -396,7 +434,7 @@ ${JSON.stringify(competitorSearch, null, 2)}
 `
 
   try {
-    const baseURL = process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'
+    const baseURL = process.env.ANTHROPIC_BASE_URL || 'https://coding.dashscope.aliyuncs.com/apps/anthropic'
     console.log('Anthropic API config:', { baseURL, hasKey: !!anthropicApiKey })
     const response = await fetch(`${baseURL}/v1/messages`, {
       method: 'POST',
@@ -425,11 +463,10 @@ ${JSON.stringify(competitorSearch, null, 2)}
       usage: data.usage,
     })
 
-    // Get content from response - handle Alibaba Anthropic format with thinking + text blocks
+    // Get content from response - handle Anthropic format with content array
     const contentArray = data.content || []
     let content = ''
 
-    // Find the text block (skip thinking blocks)
     for (const block of contentArray) {
       if (block.type === 'text' && block.text) {
         content = block.text
@@ -437,7 +474,6 @@ ${JSON.stringify(competitorSearch, null, 2)}
       }
     }
 
-    // Fallback to first block if no text block found
     if (!content && contentArray.length > 0) {
       content = contentArray[0].text || ''
     }
