@@ -6,7 +6,7 @@
 
 import express from 'express'
 import cors from 'cors'
-import { generateValidationReport } from './src/lib/report-generator'
+import { generateValidationReport } from './src/lib/report-generator.js'
 import { createClient } from '@supabase/supabase-js'
 
 const app = express()
