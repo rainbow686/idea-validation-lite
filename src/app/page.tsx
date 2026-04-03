@@ -5,6 +5,7 @@ import { API_BASE_URL } from '@/lib/api-config'
 import IdeaGenerator from '@/components/IdeaGenerator'
 import ShareModal from '@/components/ShareModal'
 import AuthHeader from '@/components/AuthHeader'
+import LoginModal from '@/components/auth/LoginModal'
 import { ReportSkeleton } from '@/components/Skeleton'
 
 interface ReportData {
@@ -123,6 +124,7 @@ export default function Home() {
   const [jobStatus, setJobStatus] = useState('')
   const [showIdeaGenerator, setShowIdeaGenerator] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -148,11 +150,28 @@ export default function Home() {
         // Auto-show share modal after report generation
         setShowShareModal(true)
       } else if (data.error) {
-        alert('Error: ' + data.error)
+        // Check if it's an authentication error
+        if (response.status === 401 || data.error.includes('Authentication') || data.error.includes('sign in')) {
+          console.log('User needs to log in')
+          setIsLoginModalOpen(true)
+        } else if (data.error.includes('Insufficient credits') || data.code === 'PAYMENT_REQUIRED') {
+          // Redirect to pricing/unlock section
+          const pricingSection = document.getElementById('pricing')
+          if (pricingSection) {
+            pricingSection.scrollIntoView({ behavior: 'smooth' })
+          }
+        } else {
+          alert('Error: ' + data.error)
+        }
       }
     } catch (error) {
       console.error('Error generating report:', error)
-      alert('Failed to generate report. This may be due to network timeout - please try again.')
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        alert('Network error. Please check your connection and try again.')
+      } else {
+        alert('Failed to generate report. This may be due to network timeout - please try again.')
+      }
     }
     setIsGenerating(false)
   }
@@ -1142,6 +1161,12 @@ export default function Home() {
           ideaTitle={ideaTitle}
         />
       )}
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-12">

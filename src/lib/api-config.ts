@@ -2,14 +2,14 @@
  * API 配置
  *
  * 开发环境：使用本地 API (localhost:3000)
- * 生产环境：使用 Render API
+ * 生产环境：使用 Render API（无超时限制，支持 60-90 秒 AI 报告生成）
  */
 
 // 从环境变量获取 Render API URL
 const RENDER_API_URL = process.env.NEXT_PUBLIC_RENDER_API_URL
 
 // 默认 Render API URL（如果环境变量未配置）
-const DEFAULT_RENDER_API_URL = 'https://idea-validation-lite.onrender.com'
+const DEFAULT_RENDER_API_URL = 'https://idea-validation-api.onrender.com'
 
 // 自动检测环境
 export const getApiBaseUrl = () => {
