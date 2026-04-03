@@ -93,17 +93,21 @@ git push origin main
 
 在 Render Dashboard 的 "Environment" 页面添加：
 
-| Key | Value |
-|-----|-------|
-| `NODE_ENV` | `production` |
-| `ANTHROPIC_API_KEY` | `sk-sp-REDACTED` |
-| `ANTHROPIC_BASE_URL` | `https://coding.dashscope.aliyuncs.com/apps/anthropic` |
-| `TAVILY_API_KEY` | `tvly-REDACTED` |
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://jcyexmffldsrbxkxnilg.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_REDACTED` |
-| `SUPABASE_SERVICE_ROLE_KEY` | `sb_secret_REDACTED` |
-| `NEXT_PUBLIC_APP_URL` | `https://idea-validation-lite.vercel.app` |
-| `PORT` | `3000` |
+| Key | 说明 | 获取方式 |
+|-----|------|----------|
+| `NODE_ENV` | `production` | - |
+| `ANTHROPIC_API_KEY` | AI API 密钥 | .env.keys 或 DashScope 控制台 |
+| `ANTHROPIC_BASE_URL` | AI API 端点 | .env.keys |
+| `TAVILY_API_KEY` | Tavily 搜索 API 密钥 | .env.keys 或 Tavily Dashboard |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL | .env.keys |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 前端密钥 | .env.keys |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 后端密钥 | .env.keys |
+| `NEXT_PUBLIC_APP_URL` | 前端 Vercel URL | Vercel 部署后获得 |
+| `PORT` | `3000` | - |
+
+> **安全提醒**：永远不要在文档、代码或 git 历史中存储真实的 API 密钥。所有密钥应存储在：
+> - 本地：`.env.keys`（已在 .gitignore 中）
+> - 生产：Vercel/Render Dashboard 的环境变量
 
 #### 2.3 等待部署完成
 
@@ -132,13 +136,13 @@ https://idea-validation-api.onrender.com
 
 在 Vercel 项目设置的 "Environment Variables" 页面添加：
 
-| Key | Value |
-|-----|-------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://jcyexmffldsrbxkxnilg.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_REDACTED` |
-| `NEXT_PUBLIC_RENDER_API_URL` | `https://idea-validation-api.onrender.com` (第二步中获得的 URL) |
+| Key | 说明 | 获取方式 |
+|-----|------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL | .env.keys |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 前端密钥 | .env.keys |
+| `NEXT_PUBLIC_RENDER_API_URL` | 后端 Render URL | 第二步中获得的 URL |
 
-**重要**：将环境变量添加到所有环境（Production、Preview、Development）
+> **重要**：将环境变量添加到所有环境（Production、Preview、Development）
 
 #### 3.4 部署
 
@@ -224,20 +228,18 @@ npm run dev
 
 **后端 `.env` (packages/backend/.env):**
 ```bash
-ANTHROPIC_API_KEY=sk-sp-REDACTED
-ANTHROPIC_BASE_URL=https://coding.dashscope.aliyuncs.com/apps/anthropic
-TAVILY_API_KEY=tvly-REDACTED
-NEXT_PUBLIC_SUPABASE_URL=https://jcyexmffldsrbxkxnilg.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_REDACTED
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_REDACTED
-PORT=3000
+# 从根目录复制 .env.keys 的内容
+cp ../../.env.keys .env
+
+# 或者手动创建，参考 ../../.env.example
 ```
 
 **前端 `.env.local` (packages/frontend/.env.local):**
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://jcyexmffldsrbxkxnilg.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_REDACTED
-# 本地开发时使用本地后端
+# 从根目录复制 .env.keys 的内容
+cp ../../.env.keys .env.local
+
+# 添加本地开发配置
 NEXT_PUBLIC_RENDER_API_URL=http://localhost:3000
 ```
 
@@ -245,7 +247,48 @@ NEXT_PUBLIC_RENDER_API_URL=http://localhost:3000
 
 ## 安全提醒
 
-- **永远不要提交 `.env` 文件到 Git**
-- API 密钥已添加到 `.gitignore`
-- 生产环境使用 Vercel 和 Render 的环境变量管理
-- 如果密钥泄露，立即在对应平台重置
+### 密钥存储位置
+
+| 环境 | 存储位置 |
+|------|----------|
+| 本地开发 | `.env.keys`（已在 .gitignore 中） |
+| Vercel | Dashboard → Settings → Environment Variables |
+| Render | Dashboard → Environment |
+
+### 永远不要
+
+- ❌ 将 `.env.keys` 或任何包含密钥的文件提交到 git
+- ❌ 在代码中硬编码密钥（使用 `process.env.*`）
+- ❌ 在文档、截图、日志中显示完整密钥
+- ❌ 通过不安全的渠道（即时消息、邮件明文）发送密钥
+
+### 如果密钥泄露
+
+1. **立即在对应平台撤销并重新生成密钥**
+2. 更新所有环境的变量
+3. 如果已提交到 git，使用 BFG Repo-Cleaner 清理历史
+
+---
+
+## 附录：环境变量清单
+
+### 前端环境变量 (Vercel)
+
+| 变量名 | 必需 | 说明 |
+|--------|------|------|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase 项目 URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase 前端认证密钥 |
+| `NEXT_PUBLIC_RENDER_API_URL` | ✅ | 后端 API 地址 |
+
+### 后端环境变量 (Render)
+
+| 变量名 | 必需 | 说明 |
+|--------|------|------|
+| `ANTHROPIC_API_KEY` | ✅ | AI 报告生成 |
+| `ANTHROPIC_BASE_URL` | ✅ | AI 服务提供商端点 |
+| `TAVILY_API_KEY` | ✅ | 网络搜索 API |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | 数据库 URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | 数据库前端密钥 |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | 数据库后端密钥 |
+| `NEXT_PUBLIC_APP_URL` | ✅ | 前端 URL（用于 CORS） |
+| `PORT` | ✅ | 服务端口（默认 3000） |
