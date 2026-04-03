@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { API_BASE_URL } from '@/lib/api-config'
 
 interface GeneratedIdea {
   title: string
@@ -30,7 +31,7 @@ export default function IdeaGenerator({ onSelectIdea, onClose }: IdeaGeneratorPr
     setIdeas([])
 
     try {
-      const response = await fetch('/api/generate-ideas', {
+      const response = await fetch(`${API_BASE_URL}/api/generate-ideas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
