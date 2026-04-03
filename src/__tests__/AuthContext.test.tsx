@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 
@@ -20,12 +20,11 @@ vi.mock('@supabase/auth-helpers-nextjs', () => ({
 
 // Test component to access auth context
 function TestComponent() {
-  const { user, session, profile, credits, isLoading } = useAuth()
+  const { user, session, isLoading } = useAuth()
   return (
     <>
       <div data-testid="user">{user?.email || 'null'}</div>
       <div data-testid="session">{session ? 'logged-in' : 'logged-out'}</div>
-      <div data-testid="credits">{credits}</div>
       <div data-testid="loading">{isLoading ? 'loading' : 'loaded'}</div>
     </>
   )

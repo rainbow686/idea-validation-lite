@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 
 interface ShareModalProps {
   isOpen: boolean
@@ -44,13 +44,7 @@ export default function ShareModal({
     return reportUrl || window.location.href
   }
 
-  useEffect(() => {
-    if (isOpen && reportData) {
-      generatePoster()
-    }
-  }, [isOpen])
-
-  const generatePoster = async () => {
+  const generatePoster = useCallback(async () => {
     setIsGenerating(true)
     try {
       const response = await fetch('/api/share/generate-poster', {
@@ -73,7 +67,13 @@ export default function ShareModal({
     } finally {
       setIsGenerating(false)
     }
-  }
+  }, [ideaTitle, reportData])
+
+  useEffect(() => {
+    if (isOpen && reportData) {
+      generatePoster()
+    }
+  }, [isOpen, reportData, generatePoster])
 
   const handleDownload = async () => {
     if (!posterRef.current) return

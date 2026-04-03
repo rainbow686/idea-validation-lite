@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = (typeof process.env.NEXT_PUBLIC_SUPABASE_URL === 'string' && process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith('http'))
@@ -45,12 +45,7 @@ export default function ValidatedIdeasPage() {
   const [filter, setFilter] = useState<'all' | 'go' | 'high-score'>('all')
   const [sortBy, setSortBy] = useState<'newest' | 'score' | 'views'>('newest')
 
-  useEffect(() => {
-    fetchIdeas()
-  }, [filter, sortBy])
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchIdeas = async () => {
+  const fetchIdeas = useCallback(async () => {
     if (!supabase) {
       setLoading(false)
       return
@@ -106,7 +101,11 @@ export default function ValidatedIdeasPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filter, sortBy])
+
+  useEffect(() => {
+    fetchIdeas()
+  }, [filter, sortBy, fetchIdeas])
 
   const getScoreColor = (score: number) => {
     if (score >= 70) return 'text-green-600 bg-green-50 border-green-200'

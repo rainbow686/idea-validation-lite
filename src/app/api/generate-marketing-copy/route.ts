@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     if (!anthropicApiKey) {
       // 返回模拟数据
-      return generateMockCopy(ideaTitle, ideaDescription || '')
+      return generateMockCopy(ideaTitle)
     }
 
     const prompt = `
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error(`Anthropic API HTTP error: ${response.status} - ${errorText}`)
-      return generateMockCopy(ideaTitle, ideaDescription || '')
+      return generateMockCopy(ideaTitle)
     }
 
     const data = await response.json()
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!content) {
-      return generateMockCopy(ideaTitle, ideaDescription || '')
+      return generateMockCopy(ideaTitle)
     }
 
     // 提取 JSON
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, data: parsed })
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
-      return generateMockCopy(ideaTitle, ideaDescription || '')
+      return generateMockCopy(ideaTitle)
     }
   } catch (error) {
     console.error('Error generating marketing copy:', error)
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateMockCopy(ideaTitle: string, _ideaDescription: string): Promise<NextResponse> {
+async function generateMockCopy(ideaTitle: string): Promise<NextResponse> {
   const mockData: MarketingCopy = {
     elevatorPitch: `为${ideaTitle.split(' ')[0] || '创业者'}打造的智能验证工具，120 秒内完成专业级市场分析`,
     twitterCopy: [

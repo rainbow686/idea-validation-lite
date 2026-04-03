@@ -1,9 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
+
+interface ReportData {
+  id: string
+  title: string
+  idea_text: string
+  created_at: string
+  metadata?: {
+    industry?: string
+    views?: number
+    validations?: number
+  }
+}
 
 interface Idea {
   id: string
@@ -50,13 +62,7 @@ export default function IdeaHistory() {
   })
   const supabase = createClientComponentClient()
 
-  useEffect(() => {
-    if (user) {
-      fetchIdeas()
-    }
-  }, [user])
-
-  const fetchIdeas = async () => {
+  const fetchIdeas = useCallback(async () => {
     try {
       // Fetch from idea_library table (user's validated ideas)
       const { data: libraryData, error: libraryError } = await supabase
@@ -69,7 +75,7 @@ export default function IdeaHistory() {
       // Fetch from reports table (user's reports)
       const { data: reportsData, error: reportsError } = await supabase
         .from('reports')
-        .select('id, title, idea_text as description, created_at, metadata')
+        .select('id, title, idea_text, created_at, metadata')
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
         .limit(50)
@@ -83,16 +89,16 @@ export default function IdeaHistory() {
         is_from_library: true,
       }))
 
-      const reportIdeas: Idea[] = (reportsData || []).map(report => ({
+      const reportIdeas: Idea[] = ((reportsData || []) as ReportData[]).map(report => ({
         id: report.id,
         title: report.title,
-        description: report.description,
+        description: report.idea_text,
         created_at: report.created_at,
         is_from_library: false,
         // Extract additional info from metadata if available
-        industry: (report.metadata as any)?.industry,
-        views: (report.metadata as any)?.views || 0,
-        validations: (report.metadata as any)?.validations || 0,
+        industry: report.metadata?.industry,
+        views: report.metadata?.views || 0,
+        validations: report.metadata?.validations || 0,
       }))
 
       // Merge and deduplicate by ID
@@ -107,7 +113,13 @@ export default function IdeaHistory() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, supabase])
+
+  useEffect(() => {
+    if (user) {
+      fetchIdeas()
+    }
+  }, [user, fetchIdeas])
 
   const filteredIdeas = ideas.filter(idea => {
     // Search filter
