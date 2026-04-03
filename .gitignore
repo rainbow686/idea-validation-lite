@@ -28,6 +28,15 @@ yarn-error.log*
 # local env files
 .env*.local
 .env.keys
+.env.local
+.env.production.local
+
+# secret / credential files
+*.pem
+*.key
+credentials.json
+service-account.json
+.render-mcp/config.json
 
 # vercel
 .vercel
@@ -36,4 +45,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .gstack/
-.env.keys
