@@ -152,7 +152,7 @@ app.post('/api/generate-report', async (req: express.Request, res: express.Respo
         .single()
 
       if (userData) {
-        const totalCredits = (userData.free_credits || 0) + (userData.payd_credits || 0)
+        const totalCredits = (userData.free_credits || 0) + (userData.paid_credits || 0)
         if (totalCredits < 1) {
           return res.status(402).json({
             error: 'Insufficient credits',
@@ -200,7 +200,7 @@ app.post('/api/generate-report', async (req: express.Request, res: express.Respo
 
 // GET /api/report-status/:jobId - Poll for report status
 app.get('/api/report-status/:jobId', (req: express.Request, res: express.Response) => {
-  const { jobId } = req.params
+  const jobId = Array.isArray(req.params.jobId) ? req.params.jobId[0] : req.params.jobId
   const job = jobs.get(jobId)
 
   if (!job) {
