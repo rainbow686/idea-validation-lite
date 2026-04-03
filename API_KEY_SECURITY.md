@@ -37,15 +37,24 @@ NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 
 **错误示例** - 永远不要这样做：
 ```markdown
-- `SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIs...`  ❌ 硬编码密钥
+- `SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIs...`  ❌ 硬编码密钥（旧 JWT 格式）
+- `SUPABASE_SERVICE_ROLE_KEY=sb_secret_RZZ4VK...`  ❌ 硬编码密钥（新 Secret key 格式）
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_2zsf...` ❌ 硬编码密钥
 - `ANTHROPIC_API_KEY=sk-sp-REDACTED...`  ❌ 硬编码密钥
 ```
 
 **正确示例** - 应该这样做：
 ```markdown
 - `SUPABASE_SERVICE_ROLE_KEY` - 存储在 .env.keys，用于后端服务  ✅
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - 存储在 .env.keys，用于前端  ✅
 - `ANTHROPIC_API_KEY` - 在 Vercel/Render Dashboard 配置  ✅
 ```
+
+**密钥格式说明**（2026-04-03 迁移后）：
+| 密钥 | 旧格式 (JWT) | 新格式 (推荐) |
+|------|-------------|--------------|
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIs...` | `sb_publishable_...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGciOiJIUzI1NiIs...` | `sb_secret_...` |
 
 ### 4. 代码中的密钥引用
 
@@ -125,15 +134,19 @@ const supabase = createClient(
 
 本项目使用以下密钥（存储位置）：
 
-| 密钥名 | 用途 | 存储位置 |
-|--------|------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL | .env.keys, Vercel, Render |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 前端认证 | .env.keys, Vercel, Render |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 后端操作 | .env.keys, Render |
-| `ANTHROPIC_API_KEY` | AI 报告生成 | .env.keys, Vercel, Render |
-| `ANTHROPIC_BASE_URL` | AI 服务提供商 | .env.keys, Vercel, Render |
-| `TAVILY_API_KEY` | 网络搜索 | .env.keys, Vercel, Render |
-| `RENDER_API_KEY` | Render 部署 | ~/.render-mcp/config.json |
+| 密钥名 | 用途 | 存储位置 | 格式前缀 |
+|--------|------|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL | .env.keys, Vercel, Render | `https://...supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 前端认证 | .env.keys, Vercel, Render | `sb_publishable_...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 后端操作 | .env.keys, Render | `sb_secret_...` |
+| `ANTHROPIC_API_KEY` | AI 报告生成 | .env.keys, Vercel, Render | `sk-sp-...` |
+| `ANTHROPIC_BASE_URL` | AI 服务提供商 | .env.keys, Vercel, Render | URL |
+| `TAVILY_API_KEY` | 网络搜索 | .env.keys, Vercel, Render | `tvly-...` |
+| `RENDER_API_KEY` | Render 部署 | ~/.render-mcp/config.json | `rnd_...` |
+
+**密钥格式说明**：
+- 2026-04-03 迁移到新的 Supabase 密钥格式（`sb_publishable_` 和 `sb_secret_`）
+- 旧的 JWT 格式密钥（`eyJhbGciOiJIUzI1NiIs...`）已停用
 
 ---
 

@@ -16,7 +16,7 @@
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...  # 新的 Publishable key
 
 # AI APIs
 ANTHROPIC_API_KEY=sk-ant-...

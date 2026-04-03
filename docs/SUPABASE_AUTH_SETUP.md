@@ -18,8 +18,8 @@
 ```bash
 # .env.keys 已配置
 NEXT_PUBLIC_SUPABASE_URL=https://jcyexmffldsrbxkxnilg.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...  # 新的 Publishable key
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_...  # 新的 Secret key
 ```
 
 ### 4. 数据库表
