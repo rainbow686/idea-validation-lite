@@ -64,6 +64,68 @@ type: reference
 - invite_codes (id, code, user_id, created_at)
 
 ---
+name: Vercel 环境变量配置 (2026-04-03)
+description: Vercel 环境变量作用域问题和 Next.js useSearchParams 修复
+type: reference
+---
+
+**问题 1：环境变量作用域问题**
+- 现象：Vercel 部署失败，错误信息 "Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL"
+- 根本原因：环境变量只在 Production 环境配置了，但 GitHub 推送触发的是 Preview 环境部署
+- 解决方法：
+  1. 使用 `vercel open` 打开 Dashboard
+  2. 进入 Settings → Environment Variables
+  3. 点击每个变量 → Edit
+  4. 勾选 Preview 和 Development 环境
+  5. 保存
+- 关键经验：
+  - Vercel 环境变量有作用域：Production / Preview / Development
+  - Production 环境变量只在 production 部署生效
+  - Preview 环境变量需要指定 git 分支或使用 `--yes` 应用到所有分支
+  - Vercel CLI 的 non-interactive 模式（AI 调用时）有 bug，--yes 参数不工作
+  - **推荐方式**：直接在 Dashboard 手动配置，或使用 Vercel MCP 的 `use_vercel_cli` 工具
+- 必需配置的变量（所有环境）：
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `NEXT_PUBLIC_APP_URL`
+  - `ANTHROPIC_API_KEY`
+  - `ANTHROPIC_BASE_URL`
+  - `TAVILY_API_KEY`
+  - `NEXT_PUBLIC_RENDER_API_URL`
+- Dashboard URL: https://vercel.com/rainbow686-8727s-projects/idea-validation-lite/settings/environment-variables
+
+**问题 2：Next.js 14 useSearchParams 需要 Suspense boundary**
+- 现象：Vercel 部署失败，错误信息 "useSearchParams() should be wrapped in a suspense boundary"
+- 位置：`src/app/auth/callback/page.tsx`
+- 根本原因：Next.js 14 要求使用 `useSearchParams()` 的组件必须被 Suspense 包裹，以防止静态生成期间的 CSR bailout
+- 修复方式：
+  1. 将原来直接使用 `useSearchParams()` 的组件拆分为 `AuthCallbackContent`
+  2. 在父组件 `AuthCallbackPage` 中用 Suspense 包裹 `AuthCallbackContent`
+  3. 提供 fallback UI（加载状态）
+- 代码模板：
+  ```tsx
+  'use client'
+  
+  import { Suspense, useEffect, useState } from 'react'
+  import { useRouter, useSearchParams } from 'next/navigation'
+  
+  function AuthCallbackContent() {
+    const searchParams = useSearchParams()  // 现在可以安全使用
+    // ... 组件逻辑
+  }
+  
+  export default function AuthCallbackPage() {
+    return (
+      <Suspense fallback={<LoadingUI />}>
+        <AuthCallbackContent />
+      </Suspense>
+    )
+  }
+  ```
+- 参考文档：https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+- 修复提交：`5ae7bf8` - "fix: wrap useSearchParams in Suspense boundary"
+
+---
 name: 生产环境部署配置
 description: Vercel 和生产环境配置信息
 type: reference
@@ -155,6 +217,35 @@ type: reference
      ```
    - 预防：当使用 fixed 定位和 z-index 时，优先使用 `items-start` + `padding-top` 而不是`items-center` + `margin-top`
    - 验证：生产 URL https://idea-validation-lite.vercel.app - 登录按钮点击后模态框完全显示
+
+3. **Vercel 环境变量配置（2026-04-03）**
+   - 问题：Vercel 部署失败，错误信息 "Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL"
+   - 根本原因：环境变量只在 Production 环境配置了，但 GitHub 推送触发的是 Preview 环境部署
+   - 尝试的失败方法：
+     - `vercel env add NAME preview --value "xxx" --yes` - CLI 要求 git branch 参数
+     - `vercel env add NAME preview main --value "xxx" --yes` - 报错 "Cannot set Production Branch for Preview Environment"
+     - `vercel api /v9/projects/.../env/ID --method PATCH --body '{"target":[...]}'` - API 返回 Invalid JSON
+   - 成功解决方法：
+     1. 使用 `vercel open` 打开 Dashboard
+     2. 进入 Settings → Environment Variables
+     3. 点击每个变量 → Edit
+     4. 勾选 Preview 和 Development 环境
+     5. 保存
+   - 关键经验：
+     - Vercel 环境变量有作用域：Production / Preview / Development
+     - Production 环境变量只在 production 部署生效
+     - Preview 环境变量需要指定 git 分支或使用 `--yes` 应用到所有分支
+     - Vercel CLI 的 non-interactive 模式（AI 调用时）有 bug，--yes 参数不工作
+     - **推荐方式**：直接在 Dashboard 手动配置，或使用 Vercel MCP 的 `use_vercel_cli` 工具
+   - 必需配置的变量（所有环境）：
+     - `NEXT_PUBLIC_SUPABASE_URL`
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+     - `NEXT_PUBLIC_APP_URL`
+     - `ANTHROPIC_API_KEY`
+     - `ANTHROPIC_BASE_URL`
+     - `TAVILY_API_KEY`
+     - `NEXT_PUBLIC_RENDER_API_URL`
+   - Dashboard URL: https://vercel.com/rainbow686-8727s-projects/idea-validation-lite/settings/environment-variables
 
 ---
 
