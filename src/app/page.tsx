@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { API_BASE_URL } from '@/lib/api-config'
 import IdeaGenerator from '@/components/IdeaGenerator'
 import ShareModal from '@/components/ShareModal'
+import AuthHeader from '@/components/AuthHeader'
 
 interface ReportData {
   preview: {
@@ -236,17 +237,20 @@ export default function Home() {
           <h1 className="text-xl font-bold text-gray-900">
             IdeaValidation<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">Lite</span>
           </h1>
-          <nav className="flex gap-4">
-            <a href="/validated" className="text-gray-600 hover:text-gray-900 transition">
-              公开验证池
-            </a>
-            <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition">
-              How it works
-            </a>
-            <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition">
-              Pricing
-            </a>
-          </nav>
+          <div className="flex items-center gap-4">
+            <nav className="hidden md:flex gap-4">
+              <a href="/validated" className="text-gray-600 hover:text-gray-900 transition">
+                公开验证池
+              </a>
+              <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition">
+                How it works
+              </a>
+              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition">
+                Pricing
+              </a>
+            </nav>
+            <AuthHeader />
+          </div>
         </div>
       </header>
 
