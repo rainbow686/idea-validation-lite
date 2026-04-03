@@ -21,10 +21,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setMessage(null)
 
     try {
+      const redirectTo = typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/callback`
+        : '/auth/callback'
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/dashboard`,
+          emailRedirectTo: redirectTo,
         },
       })
 
@@ -48,7 +52,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -56,7 +60,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto mt-20 p-8">
         {/* Close button */}
         <button
           onClick={onClose}
