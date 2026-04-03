@@ -5,6 +5,7 @@ import { API_BASE_URL } from '@/lib/api-config'
 import IdeaGenerator from '@/components/IdeaGenerator'
 import ShareModal from '@/components/ShareModal'
 import AuthHeader from '@/components/AuthHeader'
+import { ReportSkeleton } from '@/components/Skeleton'
 
 interface ReportData {
   preview: {
@@ -401,6 +402,9 @@ export default function Home() {
       {/* Report Preview */}
       {report && (
         <section className="max-w-4xl mx-auto px-4 pb-20">
+          {isGenerating ? (
+            <ReportSkeleton />
+          ) : (
           <div className="bg-white rounded-2xl shadow-lg p-8">
             {/* Score */}
             <div className="text-center mb-8">
@@ -979,6 +983,7 @@ export default function Home() {
               </button>
             </div>
           </div>
+          )}
         </section>
       )}
 
