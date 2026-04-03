@@ -6,7 +6,7 @@ services:
     region: oregon
     plan: free
     branch: main
-    rootDir: .
+    rootDir: packages/backend
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
