@@ -1,0 +1,23 @@
+{
+  "name": "idea-validation-api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.server.json",
+    "start": "node dist/api-server.js",
+    "dev": "tsx watch api-server.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@supabase/supabase-js": "^2.101.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^20",
+    "tsx": "^4.19.3",
+    "typescript": "^5"
+  }
+}

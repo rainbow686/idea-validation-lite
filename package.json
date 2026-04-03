@@ -10,12 +10,18 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "build:api": "tsc --project tsconfig.server.json",
+    "start:api": "node dist/api-server.js",
+    "dev:api": "tsx watch api-server.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "@react-pdf/renderer": "^4.3.2",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",
@@ -25,6 +31,8 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -38,6 +46,7 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.1.5",
+    "tsx": "^4.19.3",
     "typescript": "^5",
     "vitest": "^4.1.2"
   }
