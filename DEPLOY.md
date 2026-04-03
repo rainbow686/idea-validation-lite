@@ -68,12 +68,12 @@
 
    ```
    NODE_ENV=production
-   ANTHROPIC_API_KEY=sk-sp-REDACTED
-   ANTHROPIC_BASE_URL=https://coding.dashscope.aliyuncs.com/apps/anthropic
-   TAVILY_API_KEY=tvly-REDACTED
-   NEXT_PUBLIC_SUPABASE_URL=https://jcyexmffldsrbxkxnilg.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=<从 Supabase 获取>
-   SUPABASE_SERVICE_ROLE_KEY=<从 Supabase 获取>
+   ANTHROPIC_API_KEY=<从 .env.keys 复制>
+   ANTHROPIC_BASE_URL=<从 .env.keys 复制>
+   TAVILY_API_KEY=<从 .env.keys 复制>
+   NEXT_PUBLIC_SUPABASE_URL=<从 .env.keys 复制>
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<从 .env.keys 复制>
+   SUPABASE_SERVICE_ROLE_KEY=<从 .env.keys 复制>
    ```
 
 6. 点击 **"Create Web Service"**，等待 2-3 分钟

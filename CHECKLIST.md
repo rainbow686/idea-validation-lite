@@ -31,14 +31,16 @@
 
 5. 添加环境变量：
 
+   **从 `.env.keys` 文件复制**：
+
    ```
    NODE_ENV=production
-   ANTHROPIC_API_KEY=sk-sp-REDACTED
-   ANTHROPIC_BASE_URL=https://coding.dashscope.aliyuncs.com/apps/anthropic
-   TAVILY_API_KEY=tvly-REDACTED
-   NEXT_PUBLIC_SUPABASE_URL=https://jcyexmffldsrbxkxnilg.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=<你的 key>
-   SUPABASE_SERVICE_ROLE_KEY=<你的 key>
+   ANTHROPIC_API_KEY=<从 .env.keys 复制>
+   ANTHROPIC_BASE_URL=<从 .env.keys 复制>
+   TAVILY_API_KEY=<从 .env.keys 复制>
+   NEXT_PUBLIC_SUPABASE_URL=<从 .env.keys 复制>
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<从 .env.keys 复制>
+   SUPABASE_SERVICE_ROLE_KEY=<从 .env.keys 复制>
    ```
 
 6. 点击 **"Create Web Service"**

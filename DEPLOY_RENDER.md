@@ -24,27 +24,23 @@
 
 ## 步骤 3 - 添加环境变量
 
-在 Render Dashboard 的 "Environment" 页面添加以下变量：
+**从 `.env.keys` 文件中复制以下变量**到 Render Dashboard 的 "Environment" 页面：
 
 ```
 # AI
-ANTHROPIC_API_KEY=sk-sp-REDACTED
-ANTHROPIC_BASE_URL=https://coding.dashscope.aliyuncs.com/apps/anthropic
+ANTHROPIC_API_KEY=<从 .env.keys 复制>
+ANTHROPIC_BASE_URL=<从 .env.keys 复制>
 
 # Tavily Search
-TAVILY_API_KEY=tvly-REDACTED
+TAVILY_API_KEY=<从 .env.keys 复制>
 
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://jcyexmffldsrbxkxnilg.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<从 Supabase 获取>
-SUPABASE_SERVICE_ROLE_KEY=<从 Supabase 获取>
-
-# Stripe (可选)
-STRIPE_SECRET_KEY=<从 Stripe 获取>
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=<从 Stripe 获取>
-STRIPE_PRICE_ID_ONE_TIME=<价格 ID>
-STRIPE_PRICE_ID_MONTHLY=<价格 ID>
+NEXT_PUBLIC_SUPABASE_URL=<从 .env.keys 复制>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<从 .env.keys 复制>
+SUPABASE_SERVICE_ROLE_KEY=<从 .env.keys 复制>
 ```
+
+**注意**：`.env.keys` 文件包含所有 API 密钥，仅限本地开发使用，**绝对不能上传到 GitHub**！
 
 ## 步骤 4 - 部署
 

@@ -143,4 +143,4 @@ A: 升级计划或优化搜索：
 
 **创建日期**: 2026-04-01  
 **状态**: ✅ 已配置  
-**API Key**: `tvly-REDACTED`
+**API Key**: 见 `.env.keys` 文件（不要上传到 GitHub）
