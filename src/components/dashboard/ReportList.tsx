@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
@@ -22,13 +22,7 @@ export default function ReportList() {
   const [loading, setLoading] = useState(true)
   const supabase = createClientComponentClient()
 
-  useEffect(() => {
-    if (user) {
-      fetchReports()
-    }
-  }, [user])
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('reports')
@@ -43,7 +37,13 @@ export default function ReportList() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, supabase])
+
+  useEffect(() => {
+    if (user) {
+      fetchReports()
+    }
+  }, [user, fetchReports])
 
   const getStatusBadge = (status: string) => {
     const badges: Record<string, string> = {

@@ -28,7 +28,7 @@ export default async function PopularPage() {
   const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
   // Fetch popular ideas sorted by views and validations
-  const { data: ideas, error } = await supabase
+  const { data, error } = await supabase
     .from('idea_library')
     .select('*')
     .eq('is_public', true)

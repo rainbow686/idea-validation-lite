@@ -43,25 +43,21 @@ export default function CompetitorChart({
           label="直接竞品"
           value={directCompetitors.length}
           icon="🔴"
-          color="bg-red-50 text-red-700"
         />
         <StatCard
           label="间接竞品"
           value={indirectCompetitors.length}
           icon="🟡"
-          color="bg-yellow-50 text-yellow-700"
         />
         <StatCard
           label="总竞品数"
           value={competitors.length}
           icon="📊"
-          color="bg-blue-50 text-blue-700"
         />
         <StatCard
           label="你的排名"
           value={yourProduct?.score ? `#${getRank(competitors, yourProduct.score)}` : '-'}
           icon="🏆"
-          color="bg-emerald-50 text-emerald-700"
         />
       </div>
 
@@ -249,12 +245,10 @@ function StatCard({
   label,
   value,
   icon,
-  color,
 }: {
   label: string
   value: number | string
   icon: string
-  color: string
 }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">

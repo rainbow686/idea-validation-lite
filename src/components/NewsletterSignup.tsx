@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface NewsletterSignupProps {
@@ -18,7 +17,6 @@ export default function NewsletterSignup({
   const [loading, setLoading] = useState(false)
   const [subscribed, setSubscribed] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const supabase = createClientComponentClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,7 +45,7 @@ export default function NewsletterSignup({
       } else {
         setError(data.error || '订阅失败，请稍后重试')
       }
-    } catch (err) {
+    } catch {
       setError('订阅失败，请稍后重试')
     } finally {
       setLoading(false)

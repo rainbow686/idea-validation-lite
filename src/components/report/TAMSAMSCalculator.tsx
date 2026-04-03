@@ -245,7 +245,7 @@ export default function TAMSAMSCalculator({
                   stroke="#a855f7"
                   strokeWidth="8"
                   strokeDasharray="157"
-                  strokeDashoffset={157 * (1 - penetrationRate / 100)}
+                  strokeDashoffset={157 * (1 - parseFloat(penetrationRate) / 100)}
                   strokeLinecap="round"
                 />
               </svg>

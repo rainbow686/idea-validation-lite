@@ -108,7 +108,6 @@ export default function ScoreChart({
               key={index}
               label={item.label}
               value={item.value}
-              size={size}
             />
           ))}
         </div>
@@ -120,13 +119,10 @@ export default function ScoreChart({
 function ScoreBar({
   label,
   value,
-  size,
 }: {
   label: string
   value: number
-  size: string
 }) {
-  const barHeight = size === 'sm' ? 4 : size === 'md' ? 6 : 8
   const colors = getScoreColor(value)
 
   return (
