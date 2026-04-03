@@ -22,6 +22,7 @@
     "@supabase/supabase-js": "^2.101.1",
     "cors": "^2.8.6",
     "express": "^4.22.1",
+    "nanoid": "^5.1.7",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",
