@@ -37,10 +37,10 @@ type: reference
 **Project**: jcyexmffldsrbxkxnilg
 **Dashboard**: https://supabase.com/dashboard/project/jcyexmffldsrbxkxnilg
 
-**API Keys** (存储在 .env.keys):
-- `NEXT_PUBLIC_SUPABASE_URL=https://jcyexmffldsrbxkxnilg.supabase.co`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...` (anon 角色)
-- `SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...` (service_role 角色，可绕过 RLS)
+**API Keys** (存储在 .env.keys，不要提交到 git):
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase 项目 URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - anon 角色，用于前端
+- `SUPABASE_SERVICE_ROLE_KEY` - service_role 角色，可绕过 RLS，仅用于后端
 
 **Auth 配置**:
 - Site URL: `https://idea-validation-lite.vercel.app`
@@ -170,17 +170,16 @@ type: reference
 - 自动部署：yes
 
 **API 配置**:
-- API Key: `rnd_AH0fZpf3rcmQeCRk1MCnhQAZGi8l`
-- MCP 配置：`~/.render-mcp/config.json`
+- API Key: 存储在 `~/.render-mcp/config.json`，不要提交到 git
 
 **必需的环境变量** (Render Dashboard 配置):
 - `NODE_ENV=production`
-- `ANTHROPIC_API_KEY=sk-sp-REDACTED`
-- `ANTHROPIC_BASE_URL=https://coding.dashscope.aliyuncs.com/apps/anthropic`
-- `TAVILY_API_KEY=tvly-REDACTED`
-- `NEXT_PUBLIC_SUPABASE_URL=https://jcyexmffldsrbxkxnilg.supabase.co`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWV4bWZmbGRzcmJ4a3huaWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MzMzODEsImV4cCI6MjA5MDUwOTM4MX0.qf11dCNmQfDEwFOuoCzuD7Ub9oiFGTZ7u2FNO42-494`
-- `SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWV4bWZmbGRzcmJ4a3huaWxnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MzQyMjU5OCwiZXhwIjoyMDU4OTk4NTk4fQ.vN7qc4KvOPEI7PqDCKF8uGqRrCqKqcJkE8P6lRrU6LpB`
+- `ANTHROPIC_API_KEY` - 存储在 .env.keys
+- `ANTHROPIC_BASE_URL` - 存储在 .env.keys
+- `TAVILY_API_KEY` - 存储在 .env.keys
+- `NEXT_PUBLIC_SUPABASE_URL` - 存储在 .env.keys
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - 存储在 .env.keys
+- `SUPABASE_SERVICE_ROLE_KEY` - 存储在 .env.keys
 - `NEXT_PUBLIC_APP_URL=https://idea-validation-lite.vercel.app`
 
 **构建配置**:

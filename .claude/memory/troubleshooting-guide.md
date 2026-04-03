@@ -101,7 +101,7 @@ curl -X PUT "https://api.render.com/v1/services/{serviceId}/env-vars/KEY_NAME" \
 **Render 服务信息**:
 - Service ID: `srv-d77ajcpaae7s73bq643g`
 - Dashboard: https://dashboard.render.com/web/srv-d77ajcpaae7s73bq643g
-- API Key: `rnd_AH0fZpf3rcmQeCRk1MCnhQAZGi8l`
+- API Key: 存储在 `~/.render-mcp/config.json`，不要提交到 git
 
 **记忆位置**: `memory/deployment_config.md`
 
