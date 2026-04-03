@@ -9,7 +9,7 @@
 const RENDER_API_URL = process.env.NEXT_PUBLIC_RENDER_API_URL
 
 // 默认 Render API URL（如果环境变量未配置）
-const DEFAULT_RENDER_API_URL = 'https://idea-validation-api.onrender.com'
+const DEFAULT_RENDER_API_URL = 'https://idea-validation-lite.onrender.com'
 
 // 自动检测环境
 export const getApiBaseUrl = () => {
