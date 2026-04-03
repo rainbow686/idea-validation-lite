@@ -15,6 +15,8 @@ interface ShareModalProps {
   }
   ideaTitle: string
   reportUrl?: string
+  reportId?: string
+  reportSlug?: string
 }
 
 export default function ShareModal({
@@ -23,6 +25,8 @@ export default function ShareModal({
   reportData,
   ideaTitle,
   reportUrl,
+  reportId,
+  reportSlug,
 }: ShareModalProps) {
   const [posterHtml, setPosterHtml] = useState<string>('')
   const [posterSvg, setPosterSvg] = useState<string>('')
@@ -30,6 +34,15 @@ export default function ShareModal({
   const [activeTab, setActiveTab] = useState<'poster' | 'link'>('poster')
   const [copied, setCopied] = useState(false)
   const posterRef = useRef<HTMLDivElement>(null)
+
+  // Generate public share URL
+  const getShareUrl = () => {
+    if (typeof window === 'undefined') return ''
+    const baseUrl = window.location.origin
+    if (reportSlug) return `${baseUrl}/report/${reportSlug}`
+    if (reportId) return `${baseUrl}/report/${reportId}`
+    return reportUrl || window.location.href
+  }
 
   useEffect(() => {
     if (isOpen && reportData) {
@@ -108,7 +121,7 @@ export default function ShareModal({
   }
 
   const handleShare = async (platform: string) => {
-    const url = reportUrl || window.location.href
+    const url = getShareUrl()
     const text = `我刚用 IdeaProof 验证了一个创意：${ideaTitle}，得分 ${reportData.overallScore}/100。快来看看！`
 
     const shareUrls: Record<string, string> = {
@@ -304,13 +317,13 @@ export default function ShareModal({
               {/* URL Copy */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  报告链接
+                  公开报告链接
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     readOnly
-                    value={reportUrl || window.location.href}
+                    value={getShareUrl()}
                     className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 text-sm"
                   />
                   <button
@@ -320,6 +333,9 @@ export default function ShareModal({
                     {copied ? '已复制!' : '复制'}
                   </button>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 提示：任何知道此链接的人都可以查看报告
+                </p>
               </div>
 
               {/* QR Code Placeholder */}
