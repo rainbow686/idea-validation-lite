@@ -6,8 +6,6 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 const mockGetSession = vi.fn()
 const mockOnAuthStateChange = vi.fn()
 const mockUnsubscribe = vi.fn()
-const mockSelect = vi.fn()
-const mockEq = vi.fn()
 const mockSingle = vi.fn()
 
 vi.mock('@supabase/auth-helpers-nextjs', () => ({
@@ -104,13 +102,12 @@ describe('AuthContext', () => {
   it('should throw error when useAuth is used outside AuthProvider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    // Create a component that uses useAuth outside AuthProvider
+    // Create a component that throws error when used outside AuthProvider
     function OutsideProvider() {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { user } = useAuth()
+        useAuth()
         return <div>Should not render</div>
-      } catch (e) {
+      } catch {
         return <div>Caught error</div>
       }
     }
