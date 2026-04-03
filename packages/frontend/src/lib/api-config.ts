@@ -11,25 +11,19 @@ const RENDER_API_URL = process.env.NEXT_PUBLIC_RENDER_API_URL
 // 默认 Render API URL（如果环境变量未配置）
 const DEFAULT_RENDER_API_URL = 'https://idea-validation-lite.onrender.com'
 
-// 默认本地 API URL
-const LOCAL_API_URL = 'http://localhost:3000'
-
-/**
- * 获取 API 基础 URL
- *
- * 注意：这是一个同步函数，在浏览器端会根据 hostname 判断环境
- * 在服务器端（SSR/SSG）会返回 Render API URL
- */
-export const getApiBaseUrl = (): string => {
-  // 服务器端渲染时返回 Render URL
-  if (typeof window === 'undefined') {
+// 自动检测环境
+export const getApiBaseUrl = () => {
+  // 浏览器端
+  if (typeof window !== 'undefined') {
+    const isLocalhost = window.location.hostname === 'localhost'
+    if (isLocalhost) {
+      return 'http://localhost:3000'
+    }
+    // 生产环境（Vercel）使用 Render API
     return RENDER_API_URL || DEFAULT_RENDER_API_URL
   }
-
-  // 浏览器端根据 hostname 判断
-  const isLocalhost = window.location.hostname === 'localhost'
-  return isLocalhost ? LOCAL_API_URL : (RENDER_API_URL || DEFAULT_RENDER_API_URL)
+  // 服务器端默认使用 Render API
+  return DEFAULT_RENDER_API_URL
 }
 
-// 导出常量，供组件直接使用
 export const API_BASE_URL = getApiBaseUrl()
