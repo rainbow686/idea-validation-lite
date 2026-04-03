@@ -5,6 +5,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.server.json",
     "start": "node dist/api-server.js",
+    "start:api": "node dist/api-server.js",
     "dev": "tsx watch api-server.ts",
     "test": "vitest"
   },
