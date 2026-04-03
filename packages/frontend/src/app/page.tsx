@@ -129,48 +129,81 @@ export default function Home() {
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsGenerating(true)
-    setJobProgress(30)
-    setJobStatus('processing')
+    setJobProgress(10)
+    setJobStatus('starting')
 
     try {
-      // Note: On Render, this call can take 60-90 seconds
-      const response = await fetch(`${API_BASE_URL}/api/generate-report`, {
+      // Start async report generation
+      const startResponse = await fetch(`${API_BASE_URL}/api/generate-report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ideaTitle, ideaDescription }),
       })
 
-      const data = await response.json()
-      console.log('Report response:', data)
+      const startData = await startResponse.json()
+      console.log('Start response:', startData)
 
-      if (data.success && data.data) {
-        setReport(data.data)
-        setJobProgress(100)
-        setJobStatus('completed')
-        // Auto-show share modal after report generation
-        setShowShareModal(true)
-      } else if (data.error) {
-        // Check if it's an authentication error
-        if (response.status === 401 || data.error.includes('Authentication') || data.error.includes('sign in')) {
-          console.log('User needs to log in')
-          setIsLoginModalOpen(true)
-        } else if (data.error.includes('Insufficient credits') || data.code === 'PAYMENT_REQUIRED') {
-          // Redirect to pricing/unlock section
-          const pricingSection = document.getElementById('pricing')
-          if (pricingSection) {
-            pricingSection.scrollIntoView({ behavior: 'smooth' })
+      if (!startData.success || !startData.jobId) {
+        // Handle errors from start endpoint
+        if (startData.error) {
+          if (startResponse.status === 401 || startData.error.includes('Authentication') || startData.error.includes('sign in')) {
+            console.log('User needs to log in')
+            setIsLoginModalOpen(true)
+          } else if (startData.error.includes('Insufficient credits') || startData.code === 'PAYMENT_REQUIRED') {
+            const pricingSection = document.getElementById('pricing')
+            if (pricingSection) {
+              pricingSection.scrollIntoView({ behavior: 'smooth' })
+            }
+          } else {
+            alert('Error: ' + startData.error)
           }
-        } else {
-          alert('Error: ' + data.error)
         }
+        setIsGenerating(false)
+        return
+      }
+
+      const jobId = startData.jobId
+      setJobProgress(20)
+      setJobStatus('processing')
+
+      // Poll for status every 3 seconds
+      let attempts = 0
+      const maxAttempts = 60 // 3 minutes max
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 3000))
+        attempts++
+
+        const statusResponse = await fetch(`${API_BASE_URL}/api/report-status/${jobId}`)
+        const statusData = await statusResponse.json()
+
+        console.log('Status:', statusData.status, 'attempt', attempts)
+
+        // Update progress based on attempts (20% to 90%)
+        const progress = Math.min(90, 20 + attempts * 2)
+        setJobProgress(progress)
+        setJobStatus(statusData.status)
+
+        if (statusData.status === 'completed' && statusData.data) {
+          setReport(statusData.data)
+          setJobProgress(100)
+          setJobStatus('completed')
+          setShowShareModal(true)
+          break
+        } else if (statusData.status === 'failed') {
+          alert('Report generation failed: ' + (statusData.error || 'Unknown error'))
+          break
+        }
+      }
+
+      if (attempts >= maxAttempts) {
+        alert('Report generation timed out. Please try again.')
       }
     } catch (error) {
       console.error('Error generating report:', error)
-      // Check if it's a network error
       if (error instanceof TypeError && error.message.includes('fetch')) {
         alert('Network error. Please check your connection and try again.')
       } else {
-        alert('Failed to generate report. This may be due to network timeout - please try again.')
+        alert('Failed to generate report. Please try again.')
       }
     }
     setIsGenerating(false)

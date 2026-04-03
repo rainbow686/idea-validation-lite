@@ -1,7 +1,8 @@
 /**
  * Backend API Server for Render deployment
  *
- * This server handles long-running AI tasks without Vercel's 60s timeout
+ * Uses async/polling pattern to handle long-running AI tasks
+ * (Render free plan has ~60s request timeout, but report generation takes 60-90s)
  */
 
 import express from 'express'
@@ -26,6 +27,76 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+// In-memory job queue (single instance on Render free plan)
+interface Job {
+  id: string
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  ideaTitle: string
+  ideaDescription?: string
+  userId?: string
+  result?: any
+  error?: string
+  createdAt: Date
+  completedAt?: Date
+}
+
+const jobs = new Map<string, Job>()
+
+// Generate unique job ID
+function generateJobId(): string {
+  return `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+}
+
+// Background job processor
+async function processJob(jobId: string) {
+  const job = jobs.get(jobId)
+  if (!job) return
+
+  try {
+    job.status = 'processing'
+    console.log(`[Job ${jobId}] Starting report generation for:`, job.ideaTitle)
+
+    const report = await generateValidationReport(job.ideaTitle, job.ideaDescription || '')
+    console.log(`[Job ${jobId}] Report generated, score:`, report.overallScore)
+
+    // Save report if userId provided
+    let reportId = null
+    if (job.userId) {
+      const { data: savedReport } = await supabase
+        .from('reports')
+        .insert({
+          user_id: job.userId,
+          title: job.ideaTitle,
+          idea_text: job.ideaDescription || '',
+          status: 'completed',
+          metadata: report,
+        })
+        .select('id')
+        .single()
+      reportId = savedReport?.id
+    }
+
+    job.result = {
+      preview: {
+        overallScore: report.overallScore,
+        executiveSummary: report.executiveSummary,
+        greenLightsCount: report.greenLights?.length || 0,
+        competitorsCount: report.competitors?.length || 0,
+        redFlagsCount: report.redFlags?.length || 0,
+      },
+      full: report,
+      reportId,
+    }
+    job.status = 'completed'
+    job.completedAt = new Date()
+  } catch (error) {
+    console.error(`[Job ${jobId}] Error:`, error)
+    job.status = 'failed'
+    job.error = error instanceof Error ? error.message : 'Unknown error'
+    job.completedAt = new Date()
+  }
+}
 
 // Health check
 app.get('/api/health', (req: express.Request, res: express.Response) => {
@@ -62,7 +133,8 @@ app.post('/api/generate-ideas', async (req: express.Request, res: express.Respon
   }
 })
 
-// POST /api/generate-report - Main AI validation endpoint (long-running)
+// POST /api/generate-report - Start async report generation
+// Returns jobId immediately, client polls /api/report-status/:jobId
 app.post('/api/generate-report', async (req: express.Request, res: express.Response) => {
   try {
     const { ideaTitle, ideaDescription, userId } = req.body
@@ -80,7 +152,7 @@ app.post('/api/generate-report', async (req: express.Request, res: express.Respo
         .single()
 
       if (userData) {
-        const totalCredits = (userData.free_credits || 0) + (userData.paid_credits || 0)
+        const totalCredits = (userData.free_credits || 0) + (userData.payd_credits || 0)
         if (totalCredits < 1) {
           return res.status(402).json({
             error: 'Insufficient credits',
@@ -94,49 +166,69 @@ app.post('/api/generate-report', async (req: express.Request, res: express.Respo
       }
     }
 
-    // Generate report (this takes 60-90 seconds)
-    console.log('[API] Starting report generation for:', ideaTitle)
-    const report = await generateValidationReport(ideaTitle, ideaDescription || '')
-    console.log('[API] Report generated, score:', report.overallScore)
-
-    // Save report if userId provided
-    let reportId = null
-    if (userId) {
-      const { data: savedReport } = await supabase
-        .from('reports')
-        .insert({
-          user_id: userId,
-          title: ideaTitle,
-          idea_text: ideaDescription || '',
-          status: 'completed',
-          metadata: report,
-        })
-        .select('id')
-        .single()
-      reportId = savedReport?.id
+    // Create job
+    const jobId = generateJobId()
+    const job: Job = {
+      id: jobId,
+      status: 'pending',
+      ideaTitle,
+      ideaDescription,
+      userId,
+      createdAt: new Date(),
     }
+    jobs.set(jobId, job)
 
+    // Start background processing (don't await)
+    processJob(jobId).catch(err => {
+      console.error(`[Job ${jobId}] Unhandled error:`, err)
+    })
+
+    // Return job ID immediately
     res.json({
       success: true,
-      data: {
-        preview: {
-          overallScore: report.overallScore,
-          executiveSummary: report.executiveSummary,
-          greenLightsCount: report.greenLights?.length || 0,
-          competitorsCount: report.competitors?.length || 0,
-          redFlagsCount: report.redFlags?.length || 0,
-        },
-        full: report,
-      },
-      reportId,
+      jobId,
+      message: 'Report generation started. Poll /api/report-status/' + jobId + ' for results.',
     })
   } catch (error) {
     console.error('Generate report error:', error)
     res.status(500).json({
-      error: 'Failed to generate report',
+      error: 'Failed to start report generation',
       details: error instanceof Error ? error.message : 'Unknown error'
     })
   }
+})
+
+// GET /api/report-status/:jobId - Poll for report status
+app.get('/api/report-status/:jobId', (req: express.Request, res: express.Response) => {
+  const { jobId } = req.params
+  const job = jobs.get(jobId)
+
+  if (!job) {
+    return res.status(404).json({ error: 'Job not found' })
+  }
+
+  const response: any = {
+    jobId: job.id,
+    status: job.status,
+    createdAt: job.createdAt,
+    completedAt: job.completedAt,
+  }
+
+  if (job.status === 'completed' && job.result) {
+    response.data = job.result
+  } else if (job.status === 'failed' && job.error) {
+    response.error = job.error
+  }
+
+  // Clean up completed jobs older than 10 minutes
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+  for (const [id, j] of jobs.entries()) {
+    if (j.completedAt && j.completedAt < tenMinutesAgo) {
+      jobs.delete(id)
+    }
+  }
+
+  res.json(response)
 })
 
 // Start server
