@@ -105,13 +105,15 @@ NEXT_PUBLIC_RENDER_API_URL=https://idea-validation-api.onrender.com
 #### 后端环境变量 (Render)
 ```env
 NODE_ENV=production
-ANTHROPIC_API_KEY=sk-sp-xxx
-ANTHROPIC_BASE_URL=https://coding.dashscope.aliyuncs.com/apps/anthropic
-TAVILY_API_KEY=tvly-dev-xxx
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
-SUPABASE_SERVICE_ROLE_KEY=xxx
+ANTHROPIC_API_KEY=<从 .env.keys 复制>
+ANTHROPIC_BASE_URL=<从 .env.keys 复制>
+TAVILY_API_KEY=<从 .env.keys 复制>
+NEXT_PUBLIC_SUPABASE_URL=<从 .env.keys 复制>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<从 .env.keys 复制>
+SUPABASE_SERVICE_ROLE_KEY=<从 .env.keys 复制>
 ```
+
+**注意**: 所有 API 密钥存储在 `.env.keys` 文件中，此文件已添加到 `.gitignore`，**绝对不能上传到 GitHub**！
 
 #### CORS 配置 (src/middleware.ts)
 ```typescript
