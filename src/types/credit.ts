@@ -36,11 +36,13 @@ export interface CreditUsage {
 export interface Report {
   id: string;
   user_id: string;
-  title: string;
-  idea_text: string;
+  idea_title: string;
+  idea_description: string;
   status: ReportStatus;
-  pdf_url: string | null;
-  metadata: Record<string, unknown>;
+  report_data: Record<string, unknown>;
+  is_public: boolean;
+  slug: string | null;
+  view_count: number;
   created_at: string;
   updated_at: string;
 }

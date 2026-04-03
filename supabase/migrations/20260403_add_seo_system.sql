@@ -107,6 +107,15 @@ CREATE POLICY "Users can delete own ideas"
 -- 5. Functions for SEO System
 -- ============================================
 
+-- Function to update updated_at timestamp (if not exists from credit system)
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Function to generate unique slug
 CREATE OR REPLACE FUNCTION public.generate_unique_slug(base_text TEXT, table_name TEXT)
 RETURNS TEXT LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -194,10 +203,11 @@ CREATE TRIGGER update_idea_library_updated_at
 CREATE OR REPLACE VIEW public.public_reports AS
 SELECT
   r.id,
-  r.title,
+  r.idea_title as title,
   r.slug,
-  r.idea_text,
-  r.metadata,
+  r.idea_title,
+  r.idea_description,
+  r.report_data as metadata,
   r.created_at,
   u.email as author_email
 FROM public.reports r

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     console.log('[Idea Generator] Generating ideas with:', { industry, investmentRange })
 
     const anthropicApiKey = process.env.ANTHROPIC_API_KEY
-    const baseURL = process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'
+    const baseURL = process.env.ANTHROPIC_BASE_URL || 'https://coding.dashscope.aliyuncs.com/apps/anthropic'
 
     if (!anthropicApiKey) {
       console.error('[Idea Generator] Missing ANTHROPIC_API_KEY')
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json()
 
-    // Parse content from response
+    // Parse content from response - handle Anthropic format with content array
     const contentArray = data.content || []
     let content = ''
 
